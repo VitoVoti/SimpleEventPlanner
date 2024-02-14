@@ -75,7 +75,23 @@ INSTALLED_APPS = [
     "dj_rest_auth",
     "dj_rest_auth.registration",
     "corsheaders",
+    "django_recaptcha", # For auth
+    "drf_recaptcha", # For DRF
 ]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -197,3 +213,7 @@ else:
         "http://localhost:3000/",
         "http://127.0.0.1:3000/",
     ]
+
+DRF_RECAPTCHA_SECRET_KEY = env('RECAPTCHA_PRIVATE_KEY')
+RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_SITE_KEY')
+RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY')

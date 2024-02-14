@@ -25,8 +25,15 @@ curl -XPOST -H "Content-type: application/json" -d '{"username": "johnsmith", "p
 curl -XPOST -H "Content-type: application/json" -d '{ "token": "TOKENHERE"}' 'http://localhost:8000/api/auth/token/verify/' | jq
 
 ### Refresh
-curl -XPOST -H "Content-type: application/json" -d '{"refresh": "your_refresh_token>"}' 'http://localhost:8000/api/auth/token/refresh/' | jq
+curl -XPOST -H "Content-type: application/json" -d '{"refresh": "REFRESHTOKENHERE"}' 'http://localhost:8000/api/auth/token/refresh/' | jq
 
 ### Logout
-curl -XPOST -H 'Authorization: Bearer <your_access-token>' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
+curl -XPOST -H 'Authorization: Bearer TOKENHERE' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
+
+
+curl -XPOST -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA3OTA0NDc5LCJpYXQiOjE3MDc5MDA4NzksImp0aSI6IjE5YTQ0Mzk3ZDk1ZTQwMzk5MzM4ZDM1Y2IxM2ZhNDgzIiwidXNlcl9pZCI6M30.h5ZKGT0PuIyo5FcZOGowKEbCqL67jEES2621J-Fbk79HZSLt4_x_nCQ-KuJYlAoqUKlnbaRpENUD4hoQsPmSXw' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
+
+curl -XPOST -H "Content-type: application/json" -d '{ "token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA3OTA0NDc5LCJpYXQiOjE3MDc5MDA4NzksImp0aSI6IjE5YTQ0Mzk3ZDk1ZTQwMzk5MzM4ZDM1Y2IxM2ZhNDgzIiwidXNlcl9pZCI6M30.h5ZKGT0PuIyo5FcZOGowKEbCqL67jEES2621J-Fbk79HZSLt4_x_nCQ-KuJYlAoqUKlnbaRpENUD4hoQsPmSXw"}' 'http://localhost:8000/api/auth/token/verify/' | jq
+
+curl -XPOST -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwODUwNTY3OSwiaWF0IjoxNzA3OTAwODc5LCJqdGkiOiIxODVjNGNkYjZlNWY0ODVlYjVjNDAzMDI0NjZlMzM3NyIsInVzZXJfaWQiOjN9.I89XqU6zd1eXgAyQ8f3a4I1ByigL7z_bWBbm0mgda94VDp4KNXLz-R6ilgsP21yIOzxPWmXlplA3r8SFwnWlcg' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
 

@@ -1,8 +1,17 @@
-import { CircularProgress } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 
 function LoadingFullScreen() {
     return (
-        <CircularProgress />
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+            }}
+        >
+            <CircularProgress />
+        </Box>
+        
     )
 }
 

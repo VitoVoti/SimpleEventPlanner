@@ -1,5 +1,5 @@
 'use client'
-import { Box, Button, Paper, TextField, Checkbox, FormControlLabel, CircularProgress } from "@mui/material";
+import { Box, Button, Paper, TextField, Checkbox, FormControlLabel, CircularProgress, Typography } from "@mui/material";
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -7,47 +7,41 @@ import { signIn } from "next-auth/react";
 import axios from "axios";
 import { toast } from 'sonner';
 import { useState, createRef } from "react";
-import ReCAPTCHA from 'react-google-recaptcha'
+import ReCAPTCHA from 'react-google-recaptcha';
+import { ErrorMessage } from "@hookform/error-message";
+import { ErrorOutline } from "@mui/icons-material";
+import FormErrorMessage from "./FormErrorMessage";
 
-/*
-import type {
-    GetServerSidePropsContext,
-    InferGetServerSidePropsType,
-} from "next"
-import { getCsrfToken } from "next-auth/react"
-import axios from "axios";
-*/
-
+// Validation schema and types for the login form
 const schema = yup
-    .object({
-        username: yup.string().required(),
-        password: yup.string().required(),
-        remember_me: yup.boolean().default(false),
+    .object().shape({
+        username: yup.string().required("Username is required"),
+        password: yup.string().required("Password is required"),
     })
     .required()
-
 interface IFormInputs {
     username: string
     password: string
-    remember_me: boolean
 }
 
+// Component starts here
 const LoginForm = () => {
 
+    // State
     const [isLoading, setIsLoading] = useState(false)
-
     const recaptcha_ref = createRef();
 
-    const { register, handleSubmit, control, reset, formState: { errors } } = useForm<IFormInputs>({
+    // Form
+    const { register, handleSubmit, control, reset, formState: { errors, isValid } } = useForm<IFormInputs>({
         defaultValues: {
             username: "",
             password: "",
-            remember_me: false,
         },
         resolver: yupResolver(schema),
         mode: "onBlur",
     })
 
+    // Form methods
     const onRecaptchaChange = async (value: string | null) => {
         console.log("Recaptcha value is", value);
     };
@@ -86,9 +80,19 @@ const LoginForm = () => {
         }
     }
     
-
+    // Template starts here
     return (
         <Paper>
+            <Box 
+				sx={{
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+                    padding: 2,
+				}}
+			>
+				<p>Welcome to Simple Event Planner! Please log in to continue.</p>
+			</Box>
             <Box
                 component="form"
                 sx={{
@@ -101,30 +105,26 @@ const LoginForm = () => {
                 }}
                 onSubmit={handleSubmit(onSubmit)}
             >
-
                     <Controller
                         name="username"
                         control={control}
                         render={({ field }) => 
+                            <>
                             <TextField label="Username" {...field} />
+                            <FormErrorMessage errors={errors} name="username"/>
+                            </>
                         }
                     />
                     <Controller
                         name="password"
                         control={control}
                         render={({ field }) => 
+                            <>
                             <TextField label="Password" type="password" {...field} />
+                            <FormErrorMessage errors={errors} name="password"/>
+                            </>
                         }
                     />
-                    {/* 
-                    <Controller
-                        name="remember_me"
-                        control={control}
-                        render={({ field }) => 
-                            <FormControlLabel control={<Checkbox {...field} />} label="Remember me" />
-                        }
-                    />
-                    */}
 
                     <ReCAPTCHA
                         ref={recaptcha_ref}
@@ -133,7 +133,9 @@ const LoginForm = () => {
                         onChange={onRecaptchaChange}
                     />
                     
-                    <Button type="submit" disabled={isLoading}>{isLoading ? <CircularProgress /> : <span>Sign in</span> }</Button>
+                    <Button type="submit" disabled={isLoading || !isValid}>
+                        {isLoading ? <CircularProgress /> : <span>Sign in</span> }
+                    </Button>
 
             </Box>
         </Paper>

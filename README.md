@@ -37,6 +37,42 @@ curl -XPOST -H "Content-type: application/json" -d '{ "token": "eyJhbGciOiJIUzUx
 
 curl -XPOST -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwODUwNTY3OSwiaWF0IjoxNzA3OTAwODc5LCJqdGkiOiIxODVjNGNkYjZlNWY0ODVlYjVjNDAzMDI0NjZlMzM3NyIsInVzZXJfaWQiOjN9.I89XqU6zd1eXgAyQ8f3a4I1ByigL7z_bWBbm0mgda94VDp4KNXLz-R6ilgsP21yIOzxPWmXlplA3r8SFwnWlcg' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
 
+# Structure
+
+## Backend
+
+The backend is a Django project (sep_backend) with 2 apps: "core", which has the Event and EventType models, views, routes and serializers, and "authentication", which handles all the auth stuff.
+
+## Frontend
+
+I used Next.js with the app folder.
+A particular file is api/auth/[...nextauth], which is not a frontend route, and is used in conjunction with Auth.js to handle authentication with the backend, and provide hooks/callbacks related to the current user.
+
+# Libraries used
+
+## Backend
+
+* Django + Django REST Framework
+* Poetry, to manage dependencies with a lockfile
+* django_extensions, for the TimeStampedModel mixin, and the shell_plus command
+* rest_framework_simplejwt, dj_rest_auth and allauth to manage authentication via JWT Token
+* corsheaders, only used in development
+
+## Frontend
+
+* React + Next.js
+* MUI 5
+* Auth.js
+* react-hook-form
+* moment.js
+
+
+# Things that could be improved
+
+* Implement social logins (Google, Github, etc.)
+* Manage the login tokens better (for example, add a Remember Me option to increase the time, implement token blacklisting)
+* Implement reCAPTCHA on other parts of the site besides the login form
+* Unit tests and Integration tests!
 
 # Credits
 

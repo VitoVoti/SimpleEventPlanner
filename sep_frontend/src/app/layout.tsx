@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 // Style imports
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "./globals.scss";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 
@@ -43,14 +43,14 @@ export default function RootLayout({
             <body className={inter.className}>
                 <AppRouterCacheProvider options={{ enableCssLayer: true }}> {/* Needed by MUI when we use Next.js */}
                     <ThemeProvider theme={theme} > {/* MUI themeing */}
-                        <AuthClientContext session={session}>
-                            <SiteNav />
-                            <Grid container>
-                                {children}
-                            </Grid>
-                            <SiteFooter />
-                            <Toaster />
-                        </AuthClientContext>
+                            <AuthClientContext session={session}>
+                                <SiteNav />
+                                <Grid container>
+                                    {children}
+                                </Grid>
+                                <SiteFooter />
+                                <Toaster />
+                            </AuthClientContext>
                     </ThemeProvider>
                 </AppRouterCacheProvider>
             </body>

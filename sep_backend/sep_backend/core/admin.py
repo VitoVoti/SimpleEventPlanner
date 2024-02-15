@@ -8,11 +8,11 @@ from .models import *
 
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'user')
+    list_display = ('id', 'title', 'user', 'created', 'modified')
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'start_date', 'end_date', 'type', 'user')
+    list_display = ('id', 'title', 'start_date', 'end_date', 'type', 'user', 'created', 'modified')
 
 
 

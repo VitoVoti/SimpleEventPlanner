@@ -7,7 +7,11 @@ from rest_framework.response import Response
 from rest_framework import mixins
 from functools import wraps
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Decorator, to only allow a user to interact with their own elements
+# Used in EventViewSet below
 def check_event_permission(view_func):
     @wraps(view_func)
     def _wrapped_view(view, request, *args, **kwargs):
@@ -31,7 +35,7 @@ class EventTypeViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.
 
     # Override: Each element created with the API will also have the user Id who created it
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(user=self.request.user)
 
 # For events, we allow the entire CRUD, but only for the elements that the user created
 class EventViewSet(viewsets.ModelViewSet):
@@ -51,7 +55,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
     # Override: On every create, we associate the current user Id to the element
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(user=self.request.user)
     
     # Override: Only allow full update of the user's own events
     @check_event_permission

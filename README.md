@@ -37,3 +37,8 @@ curl -XPOST -H "Content-type: application/json" -d '{ "token": "eyJhbGciOiJIUzUx
 
 curl -XPOST -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwODUwNTY3OSwiaWF0IjoxNzA3OTAwODc5LCJqdGkiOiIxODVjNGNkYjZlNWY0ODVlYjVjNDAzMDI0NjZlMzM3NyIsInVzZXJfaWQiOjN9.I89XqU6zd1eXgAyQ8f3a4I1ByigL7z_bWBbm0mgda94VDp4KNXLz-R6ilgsP21yIOzxPWmXlplA3r8SFwnWlcg' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
 
+
+# Credits
+
+Favicon is from Twemoji, (c) 2020 Twitter, licensed under CC-BY 4.0
+

@@ -19,6 +19,7 @@ from django.urls import path, include
 
 # Example taken from https://testdriven.io/blog/django-rest-authjs/
 urlpatterns = [
-    path('api/auth/', include('authentication.urls')),
+    path('api/auth/', include('sep_backend.authentication.urls')),
     path("admin/", admin.site.urls),
+    path('core/', include('sep_backend.core.urls'))
 ]

@@ -16,6 +16,11 @@ class CustomLoginView(LoginView):
         # We take the recaptcha response from the frontend, and verify it with Google
         try:
             json_data = json.loads(request.body)
+
+            # For testing, if the login has this token, we skip the verification
+            if 'recaptcha_skip_token' in json_data and json_data['recaptcha_skip_token'] == settings.RECAPTCHA_SKIP_TOKEN:
+                return super().post(request, *args, **kwargs)
+
             recaptcha_response_from_frontend = json_data['recaptcha_response']
         except KeyError:
             return JsonResponse({'error': 'Malformed data'}, status=400)

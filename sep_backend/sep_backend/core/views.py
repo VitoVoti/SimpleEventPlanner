@@ -5,6 +5,17 @@ from .models import Event, EventType
 from .serializers import EventSerializer, EventTypeSerializer
 from rest_framework.response import Response
 from rest_framework import mixins
+from functools import wraps
+
+# Decorator, to only allow a user to interact with their own elements
+def check_event_permission(view_func):
+    @wraps(view_func)
+    def _wrapped_view(view, request, *args, **kwargs):
+        instance = view.get_object()
+        if instance.user != request.user:
+            return Response({'error': 'Forbidden'}, status=403)
+        return view_func(view, request, *args, **kwargs)
+    return _wrapped_view
 
 # For event types, we allow the user to create new ones, and list existing ones, but that's it
 class EventTypeViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -34,10 +45,8 @@ class EventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     # Override: Only allow getting the user's own events
+    @check_event_permission
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.user != request.user:
-            return Response({'error': 'Forbidden'}, status=403)
         return super().retrieve(request, *args, **kwargs)
 
     # Override: On every create, we associate the current user Id to the element
@@ -45,23 +54,17 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
     
     # Override: Only allow full update of the user's own events
+    @check_event_permission
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.user != request.user:
-            return Response({'error': 'Forbidden'}, status=403)
         return super().update(request, *args, **kwargs)
     
     # Override: Only allow partial update of the user's own events
+    @check_event_permission
     def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.user != request.user:
-            return Response({'error': 'Forbidden'}, status=403)
         return super().partial_update(request, *args, **kwargs)
 
     # Override: Only allow deleting the user's own events
+    @check_event_permission
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.user != request.user:
-            return Response({'error': 'Forbidden'}, status=403)
         return super().destroy(request, *args, **kwargs)
     

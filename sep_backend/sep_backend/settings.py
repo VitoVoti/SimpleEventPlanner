@@ -211,8 +211,8 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000/",
-        "http://127.0.0.1:3000/",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
     ]
 
 DRF_RECAPTCHA_SECRET_KEY = env('RECAPTCHA_PRIVATE_KEY')

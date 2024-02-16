@@ -6,6 +6,9 @@ Tested on Ubuntu 20.04.4 LTS
 Requirements: Python 3.8.10 or greater, NodeJS 18.19.0 or greater
 You'll also need the Poetry package for Python, if you don't have it installed globally
 pip install poetry
+or in Ubuntu
+sudo apt install pipx
+pipx install poetry
 You'll also need venv, in Ubuntu you can install it as a package with apt
 
 # On backend

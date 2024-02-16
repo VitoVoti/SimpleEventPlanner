@@ -1,9 +1,11 @@
 
 import { Calendar, momentLocalizer } from 'react-big-calendar'
 import moment from 'moment'
-import { Box, Tabs } from '@mui/material'
+import { Box, Tab, Tabs } from '@mui/material'
 import { useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
+import EventList from './EventList';
+import EventTimeLine from './EventTimeLine';
 
 
 const localizer = momentLocalizer(moment)
@@ -15,31 +17,29 @@ function a11yProps(index: number) {
     };
 }
 
-const MainCalendarUI = ({processedEvents, eventTypes}: {processedEvents: any[], eventTypes: any[]}) => {
+const MainCalendarUI = () => {
+
+    const [currentTab, setCurrentTab] = useState(0);
+
+    const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        setCurrentTab(newValue);
+    };
 
     return (
-        <Box className="myCustomHeight">
-            {/* 
-            <Calendar
-                localizer={localizer}
-                events={processedEvents}
-                startAccessor="start"
-                endAccessor="end"
-            /> 
-            */}
+        <Box>
 
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={value} onChange={handleChange} aria-label="Calendar tabs">
+                <Tabs value={currentTab} onChange={handleChangeTab} aria-label="Calendar views, tab interface">
                     <Tab label="List view" {...a11yProps(0)} />
                     <Tab label="Timeline view" {...a11yProps(1)} />
                 </Tabs>
             </Box>
-            <CustomTabPanel value={value} index={0}>
-                
-            </CustomTabPanel>
-            <CustomTabPanel value={value} index={1}>
-                Item Two
-            </CustomTabPanel>
+            {
+                currentTab === 0 ? 
+                <EventList /> 
+                :
+                <EventTimeLine />
+            }
             
         </Box>
     )

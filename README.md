@@ -63,8 +63,10 @@ A particular file is api/auth/[...nextauth], which is not a frontend route, and 
 * React + Next.js
 * MUI 5
 * Auth.js
+* Zustand (global state store)
 * react-hook-form
 * moment.js
+* react-use for the useDebounce hook
 
 
 # Things that could be improved
@@ -73,6 +75,8 @@ A particular file is api/auth/[...nextauth], which is not a frontend route, and 
 * Manage the login tokens better (for example, add a Remember Me option to increase the time, implement token blacklisting)
 * Implement reCAPTCHA on other parts of the site besides the login form
 * Unit tests and Integration tests!
+
+* A separate endpoint to get paginated results from the Event model. Right now, they are all returned at once.
 
 # Credits
 

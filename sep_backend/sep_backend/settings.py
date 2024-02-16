@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     #'rest_framework_simplejwt.token_blacklist',
     "allauth",
     "allauth.account",
+    "allauth.socialaccount", # We don't use social accounts, but it's needed anyway https://github.com/Tivix/django-rest-auth/issues/412
     "dj_rest_auth",
     "dj_rest_auth.registration",
     "corsheaders",

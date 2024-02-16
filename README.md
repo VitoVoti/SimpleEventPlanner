@@ -1,15 +1,30 @@
 # SimpleEventPlanner
 A simple event planner app made with Django (DRF) and React (Remix). Made as a take-home assignment for a company.
 
+# Installation of local environment
+Tested on Ubuntu 20.04.4 LTS
+Requirements: Python 3.8.10 or greater, NodeJS 18.19.0 or greater
+You'll also need the Poetry package for Python, if you don't have it installed globally
+pip install poetry
+You'll also need venv, in Ubuntu you can install it as a package with apt
+
 # On backend
 
-## First, fill the .env
-use "poetry install" to install dependencies
+* Create a virtual environment
+python -m venv env
+source env/bin/activate
 
-## Create superuser (if you want to use the /admin interface when mounting locally)
+* Use "poetry install --no-root" to install dependencies
+
+* Create a .env, you can use the .env.example as a guide
+
+* Run migrations
+python manage.py migrate
+
+* Create superuser (if you want to use the /admin interface when mounting locally)
 python manage.py createsuperuser --username admin --email admin@example.com
 
-## Create test user (register API endpoint is disabled for security)
+* Create test user (register API endpoint is disabled for security)
 python manage.py shell
 
 from django.contrib.auth.models import User
@@ -65,15 +80,20 @@ A particular file is api/auth/[...nextauth], which is not a frontend route, and 
 * Auth.js
 * Zustand (global state store)
 * react-hook-form
+* yup for schema and validation on react-hook-form forms
 * moment.js
 * react-use for the useDebounce hook
 
+# Assumptions and restrictions
+* Events can't start and end at the same minute. End date must be greater than start date.
 
 # Things that could be improved
 
+* Implement all-day events
 * Implement social logins (Google, Github, etc.)
 * Manage the login tokens better (for example, add a Remember Me option to increase the time, implement token blacklisting)
 * Implement reCAPTCHA on other parts of the site besides the login form
+* Generate documentation (drf-spectacular or some other library to generate Swagger/OpenAPI docs)
 * Unit tests and Integration tests!
 
 * A separate endpoint to get paginated results from the Event model. Right now, they are all returned at once.

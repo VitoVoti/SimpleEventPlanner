@@ -2,7 +2,7 @@
 import { Calendar, momentLocalizer } from 'react-big-calendar'
 import moment from 'moment'
 import { Box, Tab, Tabs } from '@mui/material'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
 import EventList from './EventList';
 import EventTimeLine from './EventTimeLine';
@@ -36,7 +36,9 @@ const MainCalendarUI = () => {
             </Box>
             {
                 currentTab === 0 ? 
-                <EventList /> 
+                <React.StrictMode>
+                    <EventList /> 
+                </React.StrictMode>
                 :
                 <EventTimeLine />
             }

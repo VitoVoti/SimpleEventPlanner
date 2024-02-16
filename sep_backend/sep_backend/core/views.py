@@ -22,7 +22,7 @@ def check_event_permission(view_func):
     return _wrapped_view
 
 # For event types, we allow the user to create new ones, and list existing ones, but that's it
-class EventTypeViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin):
+class EventTypeViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer
 
@@ -32,10 +32,6 @@ class EventTypeViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.
         queryset = EventType.objects.filter(user=request.user) | EventType.objects.filter(user=None)
         serializer = EventTypeSerializer(queryset, many=True)
         return Response(serializer.data)
-
-    # Override: Each element created with the API will also have the user Id who created it
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
 # For events, we allow the entire CRUD, but only for the elements that the user created
 class EventViewSet(viewsets.ModelViewSet):

@@ -8,7 +8,7 @@ import { Container, Grid } from "@mui/material";
 import axios from "axios";
 import { useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 
@@ -21,12 +21,15 @@ export default function Planner() {
 
     // We use the global store to keep the user token, events and event types
     const setUserToken = useMainStore((state) => state.setUserToken)
+    const user_token = useMainStore((state) => state.user_token)
     const setEventsAndTypesOfEvents = useMainStore((state) => state.setEventsAndTypesOfEvents)
     //const processed_events_for_list_view = useMainStore((state) => state.processed_events_for_list_view)
     //const processed_events_for_timeline_view = useMainStore((state) => state.processed_events_for_timeline_view)
     const event_types = useMainStore((state) => state.event_types)
     const filterEvents = useMainStore((state) => state.filterEvents)
     const filters = useMainStore((state) => state.filters)
+    const last_update_request_time = useMainStore((state) => state.last_update_request_time)
+    const setLastUpdateRequestTime = useMainStore((state) => state.setLastUpdateRequestTime)
 
 
     // Toggles showing the rest of the components or not
@@ -45,9 +48,16 @@ export default function Planner() {
     // We save them in the global store (Zustand) so we dont have to "drill-down" through all child components
     // updateAllData() also triggers filterEvents(), which creates the processed_events_for_list_view and processed_events_for_timeline_view
     useEffect(() => {
-        console.log("useEffect, session is", JSON.parse(JSON.stringify(session)));
-        updateAllData();
+        if(session?.access_token && (session?.access_token != user_token)) {
+            console.log("useEffect, session is", JSON.parse(JSON.stringify(session)));
+            setLastUpdateRequestTime();
+        }
     }, [session])
+
+    useEffect(() => {
+        console.log("useEffect, last_update_request_time is", last_update_request_time);
+        updateAllData();
+    }, [last_update_request_time])
 
     async function updateAllData(){
         console.log("updateAllData called")
@@ -132,12 +142,13 @@ export default function Planner() {
 
     return (
         <>
-        <p>Welcome to the Simple Event Planner!</p>
         <LocalizationProvider dateAdapter={AdapterMoment}>
             <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
                     {/* We pass this function, so we can trigger a re-fetch from the child component */}
-                    <CalendarModalsAndForms updateAllData={updateAllData} />
+                    <React.StrictMode>
+                        <CalendarModalsAndForms />
+                    </React.StrictMode>
                 </Grid>
                 <Grid item xs={12} md={9}>
                     <MainCalendarUI />

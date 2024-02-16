@@ -1,9 +1,9 @@
 
 import { Calendar, momentLocalizer } from 'react-big-calendar'
 import moment, { updateLocale } from 'moment'
-import { Autocomplete, Box, Button, CircularProgress, Grid, Input, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material'
+import { Autocomplete, Box, Button, Checkbox, CircularProgress, FormControlLabel, Grid, Input, MenuItem, Modal, Paper, Select, Stack, TextField, Typography } from '@mui/material'
 import { debounce } from '@mui/material/utils'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Add, Delete, Edit, Refresh } from '@mui/icons-material'
 import { DateTimePicker } from '@mui/x-date-pickers'
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
@@ -36,16 +36,17 @@ interface IFormInputs {
     title: string
     start_date: string
     end_date: string
-    type: integer
+    type: number
 }
 
 const current_datetime = moment().toISOString()
 
-const CalendarModalsAndForms = ({updateAllData}) => {
+const CalendarModalsAndForms = () => {
 
     const event_types = useMainStore((state) => state.event_types)
     const selected_event = useMainStore((state) => state.selected_event)
     const clearSelectedEvent = useMainStore((state) => state.clearSelectedEvent)
+    const setLastUpdateRequestTime = useMainStore((state) => state.setLastUpdateRequestTime)
 
     const filters = useMainStore((state) => state.filters)
     const setFilters = useMainStore((state) => state.setFilters)
@@ -53,7 +54,8 @@ const CalendarModalsAndForms = ({updateAllData}) => {
     const updateAllDataAndClearSelection = function(){
         console.log("updateAllDataAndClearSelection called")
         clearSelectedEvent();
-        updateAllData();
+        //updateAllData();
+        setLastUpdateRequestTime();
     }
 
     /*
@@ -77,6 +79,12 @@ const CalendarModalsAndForms = ({updateAllData}) => {
         500,
         [currentNameFilter]
     );
+    useEffect(() => {
+        // if filters.name changes and its different from currentNameFilter, we update currentNameFilter
+        if(filters.name != currentNameFilter){
+            setCurrentNameFilter(filters.name);
+        }
+    }, [filters.name])
 
     // States for the modals
     const [creationModalOpen, setCreationModalOpen] = useState(false)
@@ -88,28 +96,27 @@ const CalendarModalsAndForms = ({updateAllData}) => {
     const access_token = useMainStore((state) => state.user_token)
 
     // Validation schema for the form elements
-    const schema = yup
-    .object().shape({
+    const schema = yup.object().shape({
         title: yup.string().required("Title is required"),
         start_date: yup.string().required("Start date is required"),
-        end_date: yup.string().required("End date is required"),
-        // type has to be an id from event_types
-        type: yup.number().required("Type is required").test("is-valid-type", "Invalid type", (value : any) => {
-            return event_types.map(eventType => eventType.id).includes(value)
+        // We need to validate that end_date is after the start date, and not before, and not the same (at least 1 minute difference)
+        end_date: yup.string()
+            .required("End date is required")
+            .test("is-valid-end-date", "End date must be after start date", (value : any) => {
+            return getValues("start_date") && value && moment(value).isAfter(moment(getValues("start_date")), "minute")
         }),
+        // type has to be an id from event_types
+        type: yup.number()
+            .required("Type is required")
+            .test("is-valid-type", "Invalid type", (value : any) => {
+                return event_types.map(eventType => eventType.id).includes(value)
+            }
+        ),
     })
     .required()
 
     // Form methods
     const { register, handleSubmit, control, reset, formState: { errors, isValid }, getValues, setValue } = useForm<IFormInputs>({
-        /*
-        defaultValues: {
-            title: currentEventBeingEdited?.title,
-            start_date: currentEventBeingEdited?.start_date,
-            end_date: currentEventBeingEdited?.end_date,
-            type: currentEventBeingEdited?.type,
-        },
-        */
         resolver: yupResolver(schema),
         mode: "onBlur",
     });
@@ -118,7 +125,7 @@ const CalendarModalsAndForms = ({updateAllData}) => {
         reset({
             title: "",
             start_date: current_datetime,
-            end_date: current_datetime,
+            end_date: moment(current_datetime).add(15, "minutes").toISOString(),
             type: null,
         });
     };
@@ -139,8 +146,8 @@ const CalendarModalsAndForms = ({updateAllData}) => {
             const new_prefilled_data = {
                 id: selected_event?.id,
                 title: selected_event?.title,
-                start_date: selected_event?.start_date,
-                end_date: selected_event?.end_date,
+                start_date: moment(selected_event?.start_date).toISOString(),
+                end_date: moment(selected_event?.end_date).toISOString(),
                 type: selected_event?.type,
             
             };
@@ -152,7 +159,7 @@ const CalendarModalsAndForms = ({updateAllData}) => {
                 id: null,
                 title: "",
                 start_date: current_datetime,
-                end_date: current_datetime,
+                end_date: moment(current_datetime).add(15, "minutes").toISOString(),
                 type: null,
             };
         }
@@ -170,8 +177,8 @@ const CalendarModalsAndForms = ({updateAllData}) => {
 
         let save_result = await axios.post(url, {
             title: data.title,
-            start_date: data.start_date,
-            end_date: data.end_date,
+            start_date: moment(data.start_date).toISOString(),
+            end_date: moment(data.end_date).toISOString(),
             type: data.type,
         }, 
         {
@@ -211,8 +218,8 @@ const CalendarModalsAndForms = ({updateAllData}) => {
         // To update we use patch
         let save_result = await axios.patch(url, {
             title: data.title,
-            start_date: data.start_date,
-            end_date: data.end_date,
+            start_date: moment(data.start_date).toISOString(),
+            end_date: moment(data.end_date).toISOString(),
             type: data.type,
         }, 
         {
@@ -297,8 +304,10 @@ const CalendarModalsAndForms = ({updateAllData}) => {
                             <>
                             <DateTimePicker
                                 label="Start Date"
-                                name="start_date"
                                 defaultValue={field?.value ? moment(field?.value) : moment()}
+                                onChange={field.onChange}
+                                inputRef={field.ref}
+                                value={field?.value ? moment(field?.value) : moment().add(15, "minutes")}
                             />
                             <FormErrorMessage errors={errors} name="start_date"/>
                             </>
@@ -312,8 +321,11 @@ const CalendarModalsAndForms = ({updateAllData}) => {
                             <>
                             <DateTimePicker
                                 label="End Date"
-                                name="end_date"
                                 defaultValue={field?.value ? moment(field?.value) : moment()}
+                                onChange={field.onChange}
+                                inputRef={field.ref}
+                                value={field?.value ? moment(field?.value) : moment().add(15, "minutes")}
+                                
                             />
                             <FormErrorMessage errors={errors} name="end_date"/>
                             </>
@@ -364,18 +376,14 @@ const CalendarModalsAndForms = ({updateAllData}) => {
                             </>
                         }
                     />
-                    
 
+                    {JSON.stringify(errors)}
                     
-                    {JSON.stringify(event_types)}
-
                 
                     
                     <Button type="submit" disabled={isLoading || !isValid}>
                         {isLoading ? <CircularProgress /> : <span>Save</span> }
                     </Button>
-
-                    {JSON.stringify(errors)} {JSON.stringify(isValid)} {JSON.stringify(getValues)}
 
                 </Box>
             </Box>
@@ -450,10 +458,9 @@ const CalendarModalsAndForms = ({updateAllData}) => {
         
 
     
-    // Template starts here
     return (
         <>
-        <Grid>
+        <Grid container spacing={2}>
             <Grid item>
                 <Stack direction="column" spacing={2} alignItems="center">
 
@@ -497,41 +504,47 @@ const CalendarModalsAndForms = ({updateAllData}) => {
                 </Stack>
             </Grid>
             <Grid item>
-                <Stack direction="column" spacing={2} alignItems="center" sx={{marginTop: "30px"}}>
-                    <Typography variant="h6" component="h2">
-                        Filters
-                    </Typography>
-                    <Autocomplete
-                        id="event_type_filter"
-                        options={event_types}
-                        getOptionLabel={(option) => option.title}
-                        renderInput={(params) => <TextField {...params} label="Event Type" />}
-                        onChange={(event, value) => setFilters({type: value?.id})}
-                        value={event_types.find(eventType => eventType.id === filters.type)}
-                        sx={{width: "100%"}}
-                    />
-                    <Input
-                        type="text"
-                        placeholder="Title"
-                        onChange={(event) => setCurrentNameFilter(event.target.value)}
-                        value={currentNameFilter}
-                        sx={{width: "100%"}}
-                    />
-                    <DateTimePicker
-                        label="Start Date"
-                        defaultValue={moment()}
-                        onChange={(date) => setFilters({start_date_range: date})}
-                        value={filters.start_date_range}
-                        sx={{width: "100%"}}
-                    />
-                    <DateTimePicker
-                        label="End Date"
-                        defaultValue={moment()}
-                        onChange={(date) => setFilters({end_date_range: date})}
-                        value={filters.end_date_range}
-                        sx={{width: "100%"}}
-                    />
-                </Stack>
+                <Paper sx={{ padding: 2 }}>
+                    <Stack direction="column" spacing={2} alignItems="center" sx={{marginTop: "30px"}}>
+                        <Typography variant="h6" component="h2">
+                            Filters
+                        </Typography>
+                        <Autocomplete
+                            id="event_type_filter"
+                            options={event_types}
+                            getOptionLabel={(option) => option.title}
+                            renderInput={(params) => <TextField {...params} InputLabelProps={params.InputLabelProps} label="Filter by Event Type..." />}
+                            onChange={(event, value) => setFilters({type: value?.id})}
+                            value={event_types.find(eventType => eventType.id === filters.type) ? event_types.find(eventType => eventType.id === filters.type) : null}
+                            sx={{width: "100%"}}
+                        />
+                        <Input
+                            type="text"
+                            placeholder="Filter by Title..."
+                            onChange={(event) => setCurrentNameFilter(event.target.value)}
+                            value={currentNameFilter ? currentNameFilter : ""}
+                            sx={{width: "100%"}}
+                        />
+
+                        <FormControlLabel 
+                            checked={filters.ignore_past ? true : false}
+                            onChange={(event) => setFilters({ignore_past: event.target.checked})}
+                            inputProps={{ 'aria-label': 'controlled' }}
+                            control={<Checkbox />} 
+                            label="Don't show past events" 
+                        />
+
+                        <Button variant="contained" color="info" onClick={() => setFilters({
+                            type: null,
+                            name: null,
+                            ignore_past: false
+                        })}
+                            sx={{display: "flex", gap: 1}}
+                        >
+                            <Refresh /><span> Clear filters</span>
+                        </Button>
+                    </Stack>
+                </Paper>
             </Grid>
         </Grid>
         {

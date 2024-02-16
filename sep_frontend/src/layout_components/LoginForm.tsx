@@ -80,7 +80,7 @@ const LoginForm = () => {
         }
     }
     
-    // Template starts here
+
     return (
         <Paper>
             <Box 

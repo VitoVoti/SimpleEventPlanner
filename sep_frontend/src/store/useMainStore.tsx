@@ -7,6 +7,10 @@ import moment from 'moment'
 const useMainStore = create(
     persist(
         (set, get) => ({
+            // Epoch time of the last time we updated the events
+            // We will observe this variable to see if we need to update the events
+            last_update_request_time: null,
+
             user_token: null,
             events: [],
             event_types: [],
@@ -17,8 +21,6 @@ const useMainStore = create(
             selected_event: null,
             filters: {
                 name: null,
-                start_date_range: null,
-                end_date_range: null,
                 type: null,
                 ignore_past: false,
             },
@@ -27,6 +29,13 @@ const useMainStore = create(
             setUserToken: (token : string) => set((state) => ({
                 user_token: token
             })),
+
+            setLastUpdateRequestTime: () => {
+                console.log("setLastUpdateRequestTime called");
+                set((state) => ({
+                    last_update_request_time: moment().unix()
+                }));
+            },
 
             setEventsAndTypesOfEvents(events : any[], event_types : any[]) {
                 set((state) => ({
@@ -44,8 +53,6 @@ const useMainStore = create(
                 let event_types = get().event_types;
 
                 const now = moment();
-                const start_date_range_moment = moment(filters.start_date_range);
-                const end_date_range_moment = moment(filters.end_date_range);
 
                 console.log("Before filterEvents events", filtered_list, filters, event_types)
 
@@ -59,13 +66,7 @@ const useMainStore = create(
                 for (let event of filtered_list) {
                     let keep = true;
 
-                    if (filters.start_date_range && moment(event.end_date).isAfter(start_date_range_moment) == false) {
-                        keep = false;
-                    }
-                    else if (keep && filters.end_date_range && moment(event.start_date).isBefore(end_date_range_moment) == false) {
-                        keep = false;
-                    }
-                    else if (keep && filters.type && event.type !== filters.type) {
+                    if (filters.type && event.type !== filters.type) {
                         keep = false;
                     }
                     else if (keep && filters.ignore_past && moment(event.end_date).isAfter(now) == false) {
@@ -83,13 +84,16 @@ const useMainStore = create(
                 
                 filtered_list = filtered_list.filter((event: any) => ids_to_keep.includes(event.id)); 
 
+                // Process data for the List View, which is just a table
                 let processed_events_for_list_view = filtered_list.map((event : any) => {
                     return {
                         id: event.id,
                         title: event.title,
-                        start: event.start_date,
-                        end: event.end_date,
-                        type: event_types.find(type => type.id === event.type)?.title
+                        start_date: event.start_date,
+                        end_date: event.end_date,
+                        type: event_types.find(type => type.id === event.type)?.title,
+                        created: event.created,
+                        modified: event.modified,
                     }
                 });
                 // Process data for react-big-calendar format
@@ -97,11 +101,16 @@ const useMainStore = create(
                     return {
                         id: event.id,
                         title: event.title,
-                        start: event.start_date,
-                        end: event.end_date,
-                        type: event_types.find(type => type.id === event.type)?.title
+                        start: moment(event.start_date).toDate(),
+                        end: moment(event.end_date).toDate(),
+                        type: event_types.find(type => type.id === event.type)?.title,
+                        created: event.created,
+                        modified: event.modified,
+                        allDay: false,
                     }
                 });
+
+                console.log("processed processed_events_for_timeline_view", processed_events_for_timeline_view)
 
                 set((state) => ({
                     filtered_events: filtered_list,
@@ -124,9 +133,8 @@ const useMainStore = create(
             resetFilters: () => set((state) => ({
                 filters: {
                     name: null,
-                    start_date_range: null,
-                    end_date_range: null,
                     type: null,
+                    ignore_past: false,
                 }
             })),
 

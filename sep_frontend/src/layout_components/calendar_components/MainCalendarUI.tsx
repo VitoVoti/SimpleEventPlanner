@@ -1,14 +1,10 @@
 
-import { Calendar, momentLocalizer } from 'react-big-calendar'
-import moment from 'moment'
 import { Box, Tab, Tabs } from '@mui/material'
 import React, { useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid';
 import EventList from './EventList';
 import EventTimeLine from './EventTimeLine';
 
 
-const localizer = momentLocalizer(moment)
 
 function a11yProps(index: number) {
     return {

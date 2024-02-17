@@ -77,7 +77,8 @@ const LoginForm = () => {
                     padding: 2,
 				}}
 			>
-				<p>Welcome to Simple Event Planner! Please log in to continue.</p>
+				<p>Welcome to Simple Event Planner!</p>
+                <span>Please log in to continue.</span>
 			</Box>
             <Box
                 component="form"

@@ -24,47 +24,44 @@ source env/bin/activate
 * Run migrations
 python manage.py migrate
 
-* Create superuser (if you want to use the /admin interface when mounting locally)
-python manage.py createsuperuser --username admin --email admin@example.com
+* Create superuser, test user and default Event Types
+python manage.py seed
 
-* Create test user (register API endpoint is disabled for security)
-python manage.py shell
+# On the frontend
 
-from django.contrib.auth.models import User
-user=User.objects.create_user('johnsmith', password='J8j71mPc0eS')
-exit()
+* Install dependencies
+npm install
 
-## Test login (should return basic user info, access token and refresh token)
-curl -XPOST -H "Content-type: application/json" -d '{"username": "johnsmith", "password": "J8j71mPc0eS" }' 'http://localhost:8000/api/auth/login/' | jq
+* Create a .env, you can use the .env.example as a guide
 
-## Other endpoints
+* Run local server
+npm run dev
 
-### 200 response with {} means it's still valid
-curl -XPOST -H "Content-type: application/json" -d '{ "token": "TOKENHERE"}' 'http://localhost:8000/api/auth/token/verify/' | jq
+* Build for production
+npm run build
 
-### Refresh
-curl -XPOST -H "Content-type: application/json" -d '{"refresh": "REFRESHTOKENHERE"}' 'http://localhost:8000/api/auth/token/refresh/' | jq
-
-### Logout
-curl -XPOST -H 'Authorization: Bearer TOKENHERE' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
-
-
-curl -XPOST -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA3OTA0NDc5LCJpYXQiOjE3MDc5MDA4NzksImp0aSI6IjE5YTQ0Mzk3ZDk1ZTQwMzk5MzM4ZDM1Y2IxM2ZhNDgzIiwidXNlcl9pZCI6M30.h5ZKGT0PuIyo5FcZOGowKEbCqL67jEES2621J-Fbk79HZSLt4_x_nCQ-KuJYlAoqUKlnbaRpENUD4hoQsPmSXw' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
-
-curl -XPOST -H "Content-type: application/json" -d '{ "token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA3OTA0NDc5LCJpYXQiOjE3MDc5MDA4NzksImp0aSI6IjE5YTQ0Mzk3ZDk1ZTQwMzk5MzM4ZDM1Y2IxM2ZhNDgzIiwidXNlcl9pZCI6M30.h5ZKGT0PuIyo5FcZOGowKEbCqL67jEES2621J-Fbk79HZSLt4_x_nCQ-KuJYlAoqUKlnbaRpENUD4hoQsPmSXw"}' 'http://localhost:8000/api/auth/token/verify/' | jq
-
-curl -XPOST -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwODUwNTY3OSwiaWF0IjoxNzA3OTAwODc5LCJqdGkiOiIxODVjNGNkYjZlNWY0ODVlYjVjNDAzMDI0NjZlMzM3NyIsInVzZXJfaWQiOjN9.I89XqU6zd1eXgAyQ8f3a4I1ByigL7z_bWBbm0mgda94VDp4KNXLz-R6ilgsP21yIOzxPWmXlplA3r8SFwnWlcg' -H "Content-type: application/json" 'http://localhost:8000/api/auth/logout/' | jq
+* Run production server (after the previous build step)
+npm run start
 
 # Structure
 
 ## Backend
 
 The backend is a Django project (sep_backend) with 2 apps: "core", which has the Event and EventType models, views, routes and serializers, and "authentication", which handles all the auth stuff.
+The login has a CustomView that goes through Google's ReCAPTCHA first. Also, the throttle middleware is activated.
+The database, caching and logs are all default (SQLite and in-memory) for simplicity.
+The models use the TimeStampedModel mixin to have extra datetime fields: created and modified.
 
 ## Frontend
 
 I used Next.js with the app folder.
 A particular file is api/auth/[...nextauth], which is not a frontend route, and is used in conjunction with Auth.js to handle authentication with the backend, and provide hooks/callbacks related to the current user.
+The three main page.tsx files are the home (which also has the login component), the planner page (main UI) and the about page
+useMainStore.tsx has the main shared data store
+EventAndEventType.ts has the CRUD functions that work with the core app (backend)
+route.ts has the code that works with the authentication app (backend), most of it is boilerplate code from NextAuth
+CalendarModalsAndForms.tsx has most of the form logic (filters and CRUD)
+EventList and EventTimeLine are the two main views for the events
 
 # Libraries used
 
@@ -79,8 +76,8 @@ A particular file is api/auth/[...nextauth], which is not a frontend route, and 
 ## Frontend
 
 * React + Next.js
-* MUI 5
-* Auth.js
+* MUI 5 with Material UI
+* NextAuth.js / Auth.js
 * Zustand (global state store)
 * react-hook-form
 * yup for schema and validation on react-hook-form forms
@@ -92,14 +89,13 @@ A particular file is api/auth/[...nextauth], which is not a frontend route, and 
 
 # Things that could be improved
 
+* Finish implementing custom Event Types made by the user (Database schema is ready, but idea was scrapped due to time constraints) 
 * Implement all-day events
 * Implement social logins (Google, Github, etc.)
 * Manage the login tokens better (for example, add a Remember Me option to increase the time, implement token blacklisting)
 * Implement reCAPTCHA on other parts of the site besides the login form
 * Generate documentation (drf-spectacular or some other library to generate Swagger/OpenAPI docs)
 * Unit tests and Integration tests!
-
-* A separate endpoint to get paginated results from the Event model. Right now, they are all returned at once.
 
 # Credits
 

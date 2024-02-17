@@ -71,7 +71,6 @@ const EventTimeLine = ({ }) => {
 
     return (
         <Box
-
         >
             {
                 processed_events_for_timeline_view ?

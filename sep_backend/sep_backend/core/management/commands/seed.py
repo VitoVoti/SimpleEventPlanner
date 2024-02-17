@@ -48,7 +48,7 @@ def seed(self):
         self.stdout.write('Admin user created with password: ' + admin_password)
     
     # Check if we have test users
-    test_users = User.objects.filter(username='test_user')
+    test_users = User.objects.all()
     if len(test_users) > 0:
         self.stdout.write('Test users already exist, skipping...')
     else:

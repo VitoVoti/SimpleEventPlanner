@@ -2,14 +2,14 @@
 A simple event planner app made with Django (DRF) and React (Remix). Made as a take-home assignment for a company.
 
 # Installation of local environment
-Tested on Ubuntu 20.04.4 LTS
-Requirements: Python 3.8.10 or greater, NodeJS 18.19.0 or greater
-You'll also need the Poetry package for Python, if you don't have it installed globally
-pip install poetry
-or in Ubuntu
-sudo apt install pipx
-pipx install poetry
-You'll also need venv, in Ubuntu you can install it as a package with apt
+Tested on Ubuntu 20.04.4 LTS<br>
+Requirements: Python 3.8.10 or greater, NodeJS 18.19.0 or greater<br>
+You'll also need the Poetry package for Python, if you don't have it installed globally<br>
+pip install poetry<br>
+or in Ubuntu<br>
+sudo apt install pipx<br>
+pipx install poetry<br>
+You'll also need venv, in Ubuntu you can install it as a package with apt<br>
 
 # On backend
 
@@ -47,21 +47,21 @@ npm run start
 
 ## Backend
 
-The backend is a Django project (sep_backend) with 2 apps: "core", which has the Event and EventType models, views, routes and serializers, and "authentication", which handles all the auth stuff.
-The login has a CustomView that goes through Google's ReCAPTCHA first. Also, the throttle middleware is activated.
-The database, caching and logs are all default (SQLite and in-memory) for simplicity.
-The models use the TimeStampedModel mixin to have extra datetime fields: created and modified.
+The backend is a Django project (sep_backend) with 2 apps: "core", which has the Event and EventType models, views, routes and serializers, and "authentication", which handles all the auth stuff.<br>
+The login has a CustomView that goes through Google's ReCAPTCHA first. Also, the throttle middleware is activated.<br>
+The database, caching and logs are all default (SQLite and in-memory) for simplicity.<br>
+The models use the TimeStampedModel mixin to have extra datetime fields: created and modified.<br>
 
 ## Frontend
 
-I used Next.js with the app folder.
-A particular file is api/auth/[...nextauth], which is not a frontend route, and is used in conjunction with Auth.js to handle authentication with the backend, and provide hooks/callbacks related to the current user.
-The three main page.tsx files are the home (which also has the login component), the planner page (main UI) and the about page
-useMainStore.tsx has the main shared data store
-EventAndEventType.ts has the CRUD functions that work with the core app (backend)
-route.ts has the code that works with the authentication app (backend), most of it is boilerplate code from NextAuth
-CalendarModalsAndForms.tsx has most of the form logic (filters and CRUD)
-EventList and EventTimeLine are the two main views for the events
+I used Next.js with the app folder setup.<br>
+A particular file is api/auth/[...nextauth], which is not a frontend route, and is used in conjunction with Auth.js to handle authentication with the backend, and provide hooks/callbacks related to the current user.<br>
+The three main page.tsx files are the home (which also has the login component), the planner page (main UI) and the about page<br>
+useMainStore.tsx has the main shared data store<br>
+EventAndEventType.ts has the CRUD functions that work with the core app (backend)<br>
+route.ts has the code that works with the authentication app (backend), most of it is boilerplate code from NextAuth<br>
+CalendarModalsAndForms.tsx has most of the form logic (filters and CRUD)<br>
+EventList and EventTimeLine are the two main views for the events<br>
 
 # Libraries used
 

@@ -23,12 +23,12 @@ export default function About() {
         {
             icon: <CalendarMonth/>,
             title: "Weekly calendar view",
-            description: "Hate having to click through different views such as daily, weekly, monthly, etc.? Well, we have made the choice for you, there\'s only a weekly Timeline view!"
+            description: "Hate having to click through different views such as daily, weekly, monthly, etc.? Well, we have made the choice for you, there's only a weekly Timeline view!"
         },
         {
             icon: <AccountCircle/>,
-            title: "So private, there\'s no registrations allowed",
-            description: "This app is SO exclusive, we don\'t allow new sign-ups! Ever! That\'s how you know we don\'t harvest your data, or have a business model, or any plan for the future at all!"
+            title: "So private, there's no registrations allowed",
+            description: "This app is SO exclusive, we don't allow new sign-ups! Ever! That's how you know we don't harvest your data, or have a business model, or any plan for the future at all!"
         },
         {
             icon: <PhoneMissed/>,
@@ -38,7 +38,7 @@ export default function About() {
         {
             icon: <Code/>,
             title: "Open source",
-            description: "You can trust me, because the code is open source! You can go and see it right now!... just don\'t look at the times I had to use \'any\' for types, I swear to god Typescript can be so annoying sometimes..."
+            description: "You can trust me, because the code is open source! You can go and see it right now!... just don't look at the times I had to use 'any' for types, I swear to god Typescript can be so annoying sometimes..."
         },
     ]
 

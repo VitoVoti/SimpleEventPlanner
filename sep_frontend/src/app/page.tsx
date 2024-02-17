@@ -27,7 +27,7 @@ export default function Home() {
 			setHasUpdatedSession(true);
 		}
 		
-	}, [session, hasUpdatedSession, update]);
+	}, [session, hasUpdatedSession]);
 
 	// Special case: in development, sometimes we're logged in and the status is authenticated, but the user is not initialized yet. 
 	// We keep the loading screen in the meantime, otherwise the UI will show the login form for a second.

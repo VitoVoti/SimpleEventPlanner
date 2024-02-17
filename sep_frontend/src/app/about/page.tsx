@@ -1,12 +1,9 @@
 'use client'
 
-import LoadingFullScreen from "@/layout_components/LoadingFullScreen";
-import CalendarModalsAndForms from "@/layout_components/calendar_components/CalendarModalsAndForms";
-import MainCalendarUI from "@/layout_components/calendar_components/MainCalendarUI";
-import useMainStore from "@/store/useMainStore";
-import { AccountCircle, CalendarMonth, Code, ListAlt, PhoneMissed } from "@mui/icons-material";
+
+import { AccountCircle, CalendarMonth, Code, ListAlt, NotificationImportant } from "@mui/icons-material";
 import { Container, Grid, List, ListItem, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 
 export default function About() {
 
@@ -18,12 +15,12 @@ export default function About() {
         {
             icon: <ListAlt/>,
             title: "List View by default",
-            description: "Calendar view is so old, so we put a list view as default! Now you can waste time sorting through all your events to look for something, and realize that you might need a vacation."
+            description: "Calendar views are old news, so we put a list view as default! Now you can waste time sorting through all your events to look for something, and realize that you might need a vacation."
         },
         {
             icon: <CalendarMonth/>,
             title: "Weekly calendar view",
-            description: "Hate having to click through different views such as daily, weekly, monthly, etc.? Well, we have made the choice for you, there's only a weekly Timeline view!"
+            description: "Hate having to click through so many calendar views, such as daily, weekly, monthly, etc.? Well, we have made the choice for you: there's only a weekly Timeline view!"
         },
         {
             icon: <AccountCircle/>,
@@ -31,7 +28,7 @@ export default function About() {
             description: "This app is SO exclusive, we don't allow new sign-ups! Ever! That's how you know we don't harvest your data, or have a business model, or any plan for the future at all!"
         },
         {
-            icon: <PhoneMissed/>,
+            icon: <NotificationImportant/>,
             title: "No notifications",
             description: "No more annoying notifications, or any integrations at all! If you want to look at your calendar, open it yourself. Out of sight, out of mind."
         },
@@ -48,7 +45,7 @@ export default function About() {
         <Grid container spacing={2} sx={{marginY: 2}}>
             <Grid item xs={12}>
                 <Stack spacing={4}>
-                    <Typography variant="h2" component={"h1"}>About</Typography>
+                    <Typography variant="h2" component={"h1"} sx={{textAlign: "center"}}>About</Typography>
                     <Typography variant="h6" component={"p"} sx={{textAlign: "center"}}>
                         Hey you! You&apos;ve used many calendar apps before. And they are all sooooooooo <T color="warning">complex!</T>
                     </Typography>

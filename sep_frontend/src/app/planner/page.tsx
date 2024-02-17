@@ -5,8 +5,7 @@ import CalendarModalsAndForms from "@/layout_components/calendar_components/Cale
 import MainCalendarUI from "@/layout_components/calendar_components/MainCalendarUI";
 import useMainStore from "@/store/useMainStore";
 import { Container, Grid } from "@mui/material";
-import axios from "axios";
-import { useSession, signIn, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +13,6 @@ import { toast } from "sonner";
 
 // For date pickers
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { fetchEventTypes, fetchEvents } from "@/models/EventAndEventType";
 import { Session } from "next-auth";
@@ -22,7 +20,6 @@ import { Session } from "next-auth";
 export default function Planner() {
 
     // We use the global store to keep the user token, events and event types
-    const user_token = useMainStore((state) => state.user_token)
     const setUserToken = useMainStore((state) => state.setUserToken)
     const setEventsAndTypesOfEvents = useMainStore((state) => state.setEventsAndTypesOfEvents)
     const filters = useMainStore((state) => state.filters)
@@ -98,11 +95,21 @@ export default function Planner() {
     useEffect(() => {
         filterEvents();
     }, [filters])
+
+    // If we don't have a session, or the status is unauthenticated, we redirect to the login page
+    // We wrap it in a useEffect to avoid the "cannot update a component while rendering a different component" error
+    useEffect(() => {
+        // @ts-ignore // The types don't have the unauthenticated option, but it's there
+        if(session == null || status === "unauthenticated" || session?.access_token == null){
+            toast.error("You are not logged in, please log in to continue");
+            router.push("/");
+        }
+    }, [session, status])
     
 
     // Show a loading screen while we wait for the session to be ready
     // @ts-ignore // The types don't have the unauthenticated option, but it's there
-    if((session?.user && session?.access_token) == false) {
+    if(session == null || status === "unauthenticated" || !session?.user || !session?.access_token) {
         return (
             <Container
                 sx={{
@@ -116,11 +123,7 @@ export default function Planner() {
             </Container>
         )
     }
-    // @ts-ignore // The types don't have the unauthenticated option, but it's there
-    if(session == null || status === "unauthenticated" || session?.access_token == null){
-        toast.error("You are not logged in, please log in to continue");
-        router.push("/");
-    } 
+    
 
 
     return (

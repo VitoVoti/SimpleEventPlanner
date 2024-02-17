@@ -1,20 +1,23 @@
 
 import { Calendar, momentLocalizer } from 'react-big-calendar'
 import moment, { updateLocale } from 'moment'
-import { Autocomplete, Box, Button, Checkbox, CircularProgress, FormControlLabel, Grid, Input, MenuItem, Modal, Paper, Select, Stack, TextField, Typography } from '@mui/material'
+import { Autocomplete, Box, Button, Checkbox, CircularProgress, FormControl, FormControlLabel, Grid, Input, MenuItem, Modal, Paper, Select, Stack, TextField, Typography } from '@mui/material'
 import { debounce } from '@mui/material/utils'
-import { useEffect, useMemo, useState } from 'react'
-import { Add, Delete, Edit, Refresh } from '@mui/icons-material'
+import React, { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
+import { Add, Circle, Delete, Edit, Refresh } from '@mui/icons-material'
 import { DateTimePicker } from '@mui/x-date-pickers'
 import { useForm, Controller, SubmitHandler } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import { AnyObjectSchema } from 'yup'
 import { toast } from 'sonner';
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import FormErrorMessage from '../FormErrorMessage'
 import useMainStore from '@/store/useMainStore'
 import dayjs from 'dayjs' // For the MUI date picker
 import { useDebounce } from 'react-use'
+import { createEvent, deleteEvent, updateEvent } from '@/models/EventAndEventType'
+import EventTypeCircle from './EventTypeCircle'
 
 const localizer = momentLocalizer(moment)
 
@@ -31,13 +34,6 @@ const modal_style = {
     p: 4,
 };
 
-// Types for the form elements
-interface IFormInputs {
-    title: string
-    start_date: string
-    end_date: string
-    type: number
-}
 
 const current_datetime = moment().toISOString()
 
@@ -47,33 +43,25 @@ const CalendarModalsAndForms = () => {
     const selected_event = useMainStore((state) => state.selected_event)
     const clearSelectedEvent = useMainStore((state) => state.clearSelectedEvent)
     const setLastUpdateRequestTime = useMainStore((state) => state.setLastUpdateRequestTime)
-
+    const access_token = useMainStore((state) => state.user_token)
     const filters = useMainStore((state) => state.filters)
     const setFilters = useMainStore((state) => state.setFilters)
 
+    // For refresh button but also used after CRUDs
     const updateAllDataAndClearSelection = function(){
-        console.log("updateAllDataAndClearSelection called")
+        setIsLoading(true);
         clearSelectedEvent();
-        //updateAllData();
         setLastUpdateRequestTime();
+        // After half a second we allow pressing buttons again, to avoid spam
+        setTimeout(() => {
+            setIsLoading(false);
+        }, 500);
     }
-
-    /*
-    function debounceNameFilter(value : string, delay : number){
-        console.log("debounceNameFilter", value, delay);
-        debounce((value) => {
-            setFilters({name: value})
-        }, delay);
-    }
-
-    const debounceNameFilter = useCallback(debounce(setFilters({name: value}), 2000), []);
-    */
 
     // We dont want to search for every letter that the user types, so we use debounce
     const [currentNameFilter, setCurrentNameFilter] = useState(filters.name);
     const [, cancel] = useDebounce(
         () => {
-            console.log("after debounce, use setFilters")
             setFilters({name: currentNameFilter})
         },
         500,
@@ -90,13 +78,10 @@ const CalendarModalsAndForms = () => {
     const [creationModalOpen, setCreationModalOpen] = useState(false)
     const [updateModalOpen, setUpdateModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-
     const [isLoading, setIsLoading] = useState(false)
 
-    const access_token = useMainStore((state) => state.user_token)
-
     // Validation schema for the form elements
-    const schema = yup.object().shape({
+    const schema : AnyObjectSchema = yup.object().shape({
         title: yup.string().required("Title is required"),
         start_date: yup.string().required("Start date is required"),
         // We need to validate that end_date is after the start date, and not before, and not the same (at least 1 minute difference)
@@ -116,7 +101,7 @@ const CalendarModalsAndForms = () => {
     .required()
 
     // Form methods
-    const { register, handleSubmit, control, reset, formState: { errors, isValid }, getValues, setValue } = useForm<IFormInputs>({
+    const { register, handleSubmit, control, reset, formState: { errors, isValid }, getValues, setValue } = useForm<EventFormInputs>({
         resolver: yupResolver(schema),
         mode: "onBlur",
     });
@@ -126,7 +111,7 @@ const CalendarModalsAndForms = () => {
             title: "",
             start_date: current_datetime,
             end_date: moment(current_datetime).add(15, "minutes").toISOString(),
-            type: null,
+            type: undefined,
         });
     };
     const setCurrentFormDataAccordingToSelectedEvent = () => {
@@ -142,7 +127,6 @@ const CalendarModalsAndForms = () => {
     const currentEventBeingEdited = useMemo(() => { 
         
         if(selected_event){
-            console.log("selected_event is", selected_event)
             const new_prefilled_data = {
                 id: selected_event?.id,
                 title: selected_event?.title,
@@ -166,86 +150,57 @@ const CalendarModalsAndForms = () => {
     }, [selected_event])
 
     // Submit for creation
-    const onSubmitCreate: SubmitHandler<IFormInputs> = async (
+    const onSubmitCreate: SubmitHandler<EventFormInputs> = async (
         data,
         event?: React.BaseSyntheticEvent
     ) => {
         event?.preventDefault();
         setIsLoading(true);
-
-        let url = process.env.NEXT_PUBLIC_BACKEND_CORE_URL + "events/";
-
-        let save_result = await axios.post(url, {
-            title: data.title,
-            start_date: moment(data.start_date).toISOString(),
-            end_date: moment(data.end_date).toISOString(),
-            type: data.type,
-        }, 
-        {
-            headers: {
-                Authorization: `Bearer ${access_token}`
-            },
-        }).catch((error) => {
-            console.log("Error creating event", error);
-            return {error: error}
-        });
-
-        console.log("create return is", save_result);
-
-        
-        if(save_result == null || save_result?.error) {
-            toast.error("Error creating this event");
-        }
-        else if (save_result?.status == 201) {
-            toast.success("Event created successfully");
-            reset();
-            updateAllDataAndClearSelection();
-        }
+        await createEvent(
+            data, 
+            access_token, 
+            (() => {updateAllDataAndClearSelection();reset()}), 
+            toast
+        )
         setIsLoading(false);
         setCreationModalOpen(false);
         
     }
 
     // Submit for update
-    const onSubmitUpdate: SubmitHandler<IFormInputs> = async (
+    const onSubmitUpdate: SubmitHandler<EventFormInputs> = async (
         data,
         event?: React.BaseSyntheticEvent
     ) => {
         event?.preventDefault();
         setIsLoading(true);
-        const url = process.env.NEXT_PUBLIC_BACKEND_CORE_URL + "events/" + currentEventBeingEdited.id + "/";
-
-        // To update we use patch
-        let save_result = await axios.patch(url, {
-            title: data.title,
-            start_date: moment(data.start_date).toISOString(),
-            end_date: moment(data.end_date).toISOString(),
-            type: data.type,
-        }, 
-        {
-            headers: {
-                Authorization: `Bearer ${access_token}`
-            },
-        }).catch((error) => {
-            console.log("Error updating event", error);
-            return {error: error}
-        });
-
-        console.log("update return is", save_result);
-
-        
-        if(save_result == null || save_result?.error) {
-            toast.error("Error updating this event");
-        }
-        else if (save_result?.status == 200) {
-            toast.success("Event updated successfully");
-            reset();
-            updateAllDataAndClearSelection();
-        }
+        await updateEvent(
+            data, 
+            currentEventBeingEdited.id, 
+            access_token, 
+            (() => {updateAllDataAndClearSelection();reset()}), 
+            toast
+        )
         setIsLoading(false);
         setUpdateModalOpen(false);
         
     }
+
+    // "Submit" for delete, when confirming
+    const deleteCurrentEvent = async (event?: React.BaseSyntheticEvent) => {
+        event?.preventDefault();
+        setIsLoading(true);
+        await deleteEvent(
+            currentEventBeingEdited.id, 
+            access_token, 
+            updateAllDataAndClearSelection, 
+            toast
+        )
+        setIsLoading(false);
+        setDeleteModalOpen(false);
+    }
+
+    // Methods to open modals and set data in forms
 
     const startCreation = () => {
         clearCurrentFormData();
@@ -260,6 +215,8 @@ const CalendarModalsAndForms = () => {
     const startDeletition = () => {
         setDeleteModalOpen(true);
     }
+
+    // Render modals
 
     const renderInsideModal = (type: string) => {
         return (
@@ -362,12 +319,12 @@ const CalendarModalsAndForms = () => {
                                 sx={{width: "100%"}}
                                 {...field}
                             >
-                                {event_types.map(eventType => 
+                                {event_types.map(option => 
                                     <MenuItem 
-                                        key={eventType.id} 
-                                        value={eventType.id}
+                                        key={option.id} 
+                                        value={option.id}
                                     >
-                                        {eventType.title}
+                                        <EventTypeCircle color={option.color}/> {option.title}
                                     </MenuItem>
                                 )}
                                 
@@ -376,8 +333,6 @@ const CalendarModalsAndForms = () => {
                             </>
                         }
                     />
-
-                    {JSON.stringify(errors)}
                     
                 
                     
@@ -429,49 +384,35 @@ const CalendarModalsAndForms = () => {
         )
     }
 
-    const deleteCurrentEvent = async (event?: React.BaseSyntheticEvent) => {
-        event?.preventDefault();
-        setIsLoading(true);
-        // We need to delete the event
-        const url = process.env.NEXT_PUBLIC_BACKEND_CORE_URL + "events/" + currentEventBeingEdited.id + "/";
-        let delete_result = await axios.delete(url, {
-            headers: {
-                Authorization: `Bearer ${access_token}`
-            },
-        }).catch((error) => {
-            console.log("Error deleting event", error);
-            return {error: error}
-        });
-
-        console.log("delete_result return is", delete_result)
-
-        if(delete_result == null || delete_result?.error) {
-           toast.error("Error deleting this event");
-        }
-        else if (delete_result?.status == 204) {
-            toast.success("Event deleted successfully");
-            updateAllDataAndClearSelection();
-        }
-        setIsLoading(false);
-        setDeleteModalOpen(false);
-    }
+    
         
 
     
     return (
         <>
-        <Grid container spacing={2}>
-            <Grid item>
-                <Stack direction="column" spacing={2} alignItems="center">
+        <Grid container spacing={2} sx={{ marginY: 2 }}>
+            <Grid item xs={12} sm={6} md={12}>
+                <Stack direction="column" spacing={2} alignItems="center" justifyContent="center">
 
-                    <Button variant="contained" color="info" onClick={() => updateAllDataAndClearSelection()}
-                        sx={{display: "flex", gap: 1}}
+                    <Button 
+                        variant="contained"
+                        color="info"
+                        onClick={() => updateAllDataAndClearSelection()}
+                        disabled={isLoading}
+                        sx={{width: "100%"}}
+                        startIcon={<Refresh />}
                     >
-                        <Refresh /><span> Refresh</span>
+                        <span>Refresh</span>
                     </Button>
 
-                    <Button variant="contained" color="primary" onClick={() => startCreation()}>
-                        <Add /><span> New Event</span>
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={() => startCreation()}
+                        sx={{width: "100%"}}
+                        startIcon={<Add />}
+                    >
+                        <span>New Event</span>
                     </Button>
                     
                     <Button 
@@ -479,8 +420,10 @@ const CalendarModalsAndForms = () => {
                         disabled={selected_event == null}
                         color="secondary" 
                         onClick={() => startUpdate()}
+                        sx={{width: "100%"}}
+                        startIcon={<Edit />}
                     >
-                        <Edit /><span> Update Event</span>
+                        <span>Update Event</span>
                     </Button>
 
                     <Button 
@@ -488,8 +431,10 @@ const CalendarModalsAndForms = () => {
                         disabled={selected_event == null}
                         color="error" 
                         onClick={() => startDeletition()}
+                        sx={{width: "100%"}}
+                        startIcon={<Delete />}
                     >
-                        <Delete /><span> Delete Event</span>
+                        <span>Delete Event</span>
                     </Button>
 
                     <Button 
@@ -497,27 +442,50 @@ const CalendarModalsAndForms = () => {
                         disabled={selected_event == null}
                         color="secondary" 
                         onClick={() => clearSelectedEvent()}
+                        sx={{width: "100%"}}
                     >
                         <span>Clear selection</span>
                     </Button>
                     
                 </Stack>
             </Grid>
-            <Grid item>
+            <Grid item xs={12} sm={6} md={12}>
                 <Paper sx={{ padding: 2 }}>
-                    <Stack direction="column" spacing={2} alignItems="center" sx={{marginTop: "30px"}}>
+                    <Stack direction="column" spacing={2} alignItems="center">
                         <Typography variant="h6" component="h2">
                             Filters
                         </Typography>
-                        <Autocomplete
-                            id="event_type_filter"
-                            options={event_types}
-                            getOptionLabel={(option) => option.title}
-                            renderInput={(params) => <TextField {...params} InputLabelProps={params.InputLabelProps} label="Filter by Event Type..." />}
-                            onChange={(event, value) => setFilters({type: value?.id})}
-                            value={event_types.find(eventType => eventType.id === filters.type) ? event_types.find(eventType => eventType.id === filters.type) : null}
-                            sx={{width: "100%"}}
-                        />
+                        <FormControl
+
+                        >
+                            <Autocomplete
+                                id="event_type_filter"
+                                multiple={true}
+                                options={event_types}
+                                getOptionLabel={(option) => option.title}
+                                renderInput={(params) => 
+                                    <TextField {...params} InputLabelProps={params.InputLabelProps} label="Filter by Event Types..."/>
+                                }
+                                renderOption={(props, option, { selected }) => (
+                                    <li 
+                                    {...props}
+                                    >
+                                        <EventTypeCircle color={option.color}/>
+                                        {
+                                            selected ?
+                                            <strong>{option.title}</strong>
+                                            :
+                                            <span>{option.title}</span>
+                                        }
+                                    </li>
+                                )}
+                                onChange={(event, value : EventTypeFromBackend[]) => setFilters({types: value})}
+                                value={filters.types ? filters.types : []}
+                                sx={{minWidth: 200, maxWidth: "100%"}}
+                            />
+                        </FormControl>
+                        
+                        
                         <Input
                             type="text"
                             placeholder="Filter by Title..."
@@ -528,20 +496,19 @@ const CalendarModalsAndForms = () => {
 
                         <FormControlLabel 
                             checked={filters.ignore_past ? true : false}
-                            onChange={(event) => setFilters({ignore_past: event.target.checked})}
-                            inputProps={{ 'aria-label': 'controlled' }}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement> | React.SyntheticEvent<Element, Event>) => setFilters({ignore_past: (event.target as HTMLInputElement).checked})}
                             control={<Checkbox />} 
                             label="Don't show past events" 
                         />
 
                         <Button variant="contained" color="info" onClick={() => setFilters({
-                            type: null,
+                            types: [],
                             name: null,
                             ignore_past: false
                         })}
                             sx={{display: "flex", gap: 1}}
                         >
-                            <Refresh /><span> Clear filters</span>
+                            <span> Clear filters</span>
                         </Button>
                     </Stack>
                 </Paper>

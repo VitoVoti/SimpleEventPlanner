@@ -1,44 +1,45 @@
-import axios from '../lib/axios';
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import moment from 'moment'
 
+
+
+
 // Here we hold the current user's data, and Event data to share between components
-const useMainStore = create(
+const useMainStore = create<MainStoreState>()(
     persist(
         (set, get) => ({
             // Epoch time of the last time we updated the events
             // We will observe this variable to see if we need to update the events
             last_update_request_time: null,
 
+            // Shared data
             user_token: null,
             events: [],
             event_types: [],
-
             filtered_events: [],
             processed_events_for_list_view: [],
             processed_events_for_timeline_view: [],
             selected_event: null,
             filters: {
                 name: null,
-                type: null,
+                types: [],
                 ignore_past: false,
             },
 
 
-            setUserToken: (token : string) => set((state) => ({
+            setUserToken: (token : string) => set(() => ({
                 user_token: token
             })),
 
             setLastUpdateRequestTime: () => {
-                console.log("setLastUpdateRequestTime called");
-                set((state) => ({
+                set(() => ({
                     last_update_request_time: moment().unix()
                 }));
             },
 
-            setEventsAndTypesOfEvents(events : any[], event_types : any[]) {
-                set((state) => ({
+            setEventsAndTypesOfEvents(events : EventFromBackend[], event_types : EventTypeFromBackend[]) {
+                set(() => ({
                     events: events,
                     event_types: event_types,
                 }))
@@ -54,19 +55,21 @@ const useMainStore = create(
 
                 const now = moment();
 
-                console.log("Before filterEvents events", filtered_list, filters, event_types)
-
-                
-
                 // We are going to implement a very simple filter.
                 // It's not very efficient. But at least we short-circuit when we already have a keep = false
                 // These filters will show anything between the selected dates
                 // For example, an even that starts January 1st and ends in January 10th will be shown if we select January 5th as start_date_rage
-                let ids_to_keep = [];
+                let ids_to_keep : number[] = [];
+                let types_on_filters_ids: number[] = []
+                if(filters.types){
+                    filters.types.filter(e => e).map((type : EventTypeFromBackend) => type.id);
+                }
+
                 for (let event of filtered_list) {
                     let keep = true;
 
-                    if (filters.type && event.type !== filters.type) {
+
+                    if (filters.types && filters.types.length > 0 && event.type && types_on_filters_ids.includes(event.type) == false) {
                         keep = false;
                     }
                     else if (keep && filters.ignore_past && moment(event.end_date).isAfter(now) == false) {
@@ -86,33 +89,37 @@ const useMainStore = create(
 
                 // Process data for the List View, which is just a table
                 let processed_events_for_list_view = filtered_list.map((event : any) => {
+                    let current_event = event_types.find(type => type.id === event.type);
                     return {
                         id: event.id,
                         title: event.title,
                         start_date: event.start_date,
                         end_date: event.end_date,
-                        type: event_types.find(type => type.id === event.type)?.title,
+                        type_name: current_event ? current_event.title : "",
+                        type: event.type,
                         created: event.created,
                         modified: event.modified,
+                        color: current_event ? current_event.color : "white",
                     }
                 });
                 // Process data for react-big-calendar format
                 let processed_events_for_timeline_view = filtered_list.map((event : any) => {
+                    let current_event = event_types.find(type => type.id === event.type);
                     return {
                         id: event.id,
                         title: event.title,
                         start: moment(event.start_date).toDate(),
                         end: moment(event.end_date).toDate(),
-                        type: event_types.find(type => type.id === event.type)?.title,
+                        type: event.type,
+                        type_name: current_event ? current_event.title : "",
                         created: event.created,
                         modified: event.modified,
                         allDay: false,
+                        color: current_event ? current_event.color : "white",
                     }
                 });
 
-                console.log("processed processed_events_for_timeline_view", processed_events_for_timeline_view)
-
-                set((state) => ({
+                set(() => ({
                     filtered_events: filtered_list,
                     processed_events_for_list_view: processed_events_for_list_view,
                     processed_events_for_timeline_view: processed_events_for_timeline_view
@@ -120,20 +127,20 @@ const useMainStore = create(
             },
                 
 
-            setSelectedEvent: (event : any) => set((state) => ({
+            setSelectedEvent: (event : any) => set(() => ({
                 selected_event: event
             })),
-            clearSelectedEvent: () => set((state) => ({
+            clearSelectedEvent: () => set(() => ({
                 selected_event: null
             })),
             // We only add whatever we have, and not the whole state
-            setFilters: (filters : any) => set((state) => ({
+            setFilters: (filters : any) => set((state: { filters: any; }) => ({
                 filters: {...state.filters, ...filters }
             })),
-            resetFilters: () => set((state) => ({
+            resetFilters: () => set(() => ({
                 filters: {
                     name: null,
-                    type: null,
+                    types: [],
                     ignore_past: false,
                 }
             })),

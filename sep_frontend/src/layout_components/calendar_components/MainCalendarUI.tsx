@@ -28,7 +28,7 @@ const MainCalendarUI = () => {
     return (
         <Box>
 
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', marginY: 3 }}>
                 <Tabs value={currentTab} onChange={handleChangeTab} aria-label="Calendar views, tab interface">
                     <Tab label="List view" {...a11yProps(0)} />
                     <Tab label="Timeline view" {...a11yProps(1)} />

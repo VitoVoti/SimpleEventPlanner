@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 // Style imports
 import { Inter } from "next/font/google";
-import "./globals.scss";
+import "./globals.css";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 

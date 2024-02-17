@@ -23,25 +23,33 @@ import { useRouter } from 'next/navigation';
 import Link from './Link';
 import MainLogo from './sitenav_components/MainLogo';
 
+// For now we only have 2 pages
 const pages = [
     {
         name: 'My Planner',
         href: '/planner',
-    }
+    },
+    {
+        name: 'About',
+        href: '/about',
+    },
 ];
 
 function SiteNav() {
+
+    // States
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
     const {data: session, status} = useSession();
 
+    // Router
     const router = useRouter();
     const goToUrl = (url: string) => {
-        console.log("go to", url)
         router.push(url);
     }
 
+    // Handlers for menus and stuff
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
     };
@@ -56,6 +64,8 @@ function SiteNav() {
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
     };
+
+
 
     return (
         <AppBar position="static">
@@ -90,12 +100,12 @@ function SiteNav() {
                             anchorEl={anchorElNav}
                             anchorOrigin={{
                                 vertical: 'bottom',
-                                horizontal: 'right',
+                                horizontal: 'left',
                             }}
                             keepMounted
                             transformOrigin={{
                                 vertical: 'top',
-                                horizontal: 'right',
+                                horizontal: 'left',
                             }}
                             open={Boolean(anchorElNav)}
                             onClose={handleCloseNavMenu}

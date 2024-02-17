@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { DataGrid, GridColDef, GridRowSelectionModel, GridvalueFormatterParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridRowSelectionModel, GridValueFormatterParams } from '@mui/x-data-grid';
 import moment from "moment";
 import useMainStore from "@/store/useMainStore";
 import { Box } from "@mui/material";
+import { Circle } from "@mui/icons-material";
+import EventTypeCircle from "./EventTypeCircle";
 
 // Columns for the table
 const columns: GridColDef[] = [
@@ -24,7 +26,7 @@ const columns: GridColDef[] = [
         sortable: true,
         type: 'string',
         width: 160,
-        valueFormatter: (params: GridvalueFormatterParams) =>
+        valueFormatter: (params: GridValueFormatterParams) =>
             `${moment(params.value).format('LLL')}`,
         sortComparator: (el1, el2) => el1.localeCompare(el2),
         disableColumnMenu: true,
@@ -40,10 +42,22 @@ const columns: GridColDef[] = [
         disableColumnMenu: true,
     },
     {
-        field: 'type',
+        field: 'type_name',
         headerName: 'Type',
         width: 150,
         disableColumnMenu: true,
+        // we show a custom component
+        renderCell: (params: any) => {
+            return (
+                <div>
+                    <EventTypeCircle color={params.row.color}/>
+                    <span>
+                        {params?.value}
+                    </span>
+                </div>
+            );
+        },
+        sortComparator: (el1, el2) => el1.localeCompare(el2),
 
     },
     {
@@ -52,7 +66,7 @@ const columns: GridColDef[] = [
         sortable: true,
         type: 'string',
         width: 160,
-        valueFormatter: (params: GridvalueFormatterParams) =>
+        valueFormatter: (params: GridValueFormatterParams) =>
             `${moment(params.value).format('LLL')}`,
         disableColumnMenu: true,
     },
@@ -62,7 +76,7 @@ const columns: GridColDef[] = [
         sortable: true,
         type: 'string',
         width: 160,
-        valueFormatter: (params: GridvalueFormatterParams) =>
+        valueFormatter: (params: GridValueFormatterParams) =>
             `${moment(params.value).format('LLL')}`,
         disableColumnMenu: true,
     },

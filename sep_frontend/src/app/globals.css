@@ -1,0 +1,8 @@
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+@import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+
+/* Custom background color for events */
+.rbc-event, .rbc-day-slot .rbc-background-event {
+    background-color: rgba(114,164,214,1) !important;
+    border-color: rgba(114,164,214,1) !important;
+}

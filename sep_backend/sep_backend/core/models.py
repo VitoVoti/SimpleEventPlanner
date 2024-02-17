@@ -8,6 +8,7 @@ from rest_framework import serializers
 class EventType(TimeStampedModel, models.Model):
     title = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True) # Some EventTypes are for everyone, if this field is empty
+    color = models.CharField(max_length=10, default="#1975d2") # Color for the dot at the left of an event, HEX format
 
     def __str__(self):
         return self.title

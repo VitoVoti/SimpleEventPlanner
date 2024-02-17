@@ -19,20 +19,17 @@ const schema = yup
         password: yup.string().required("Password is required"),
     })
     .required()
-interface IFormInputs {
-    username: string
-    password: string
-}
+
 
 // Component starts here
 const LoginForm = () => {
 
     // State
     const [isLoading, setIsLoading] = useState(false)
-    const recaptcha_ref = createRef();
+    const recaptcha_ref : React.MutableRefObject<any> = createRef();
 
     // Form
-    const { register, handleSubmit, control, reset, formState: { errors, isValid } } = useForm<IFormInputs>({
+    const { register, handleSubmit, control, reset, formState: { errors, isValid } } = useForm<LoginFormInputs>({
         defaultValues: {
             username: "",
             password: "",
@@ -42,11 +39,8 @@ const LoginForm = () => {
     })
 
     // Form methods
-    const onRecaptchaChange = async (value: string | null) => {
-        console.log("Recaptcha value is", value);
-    };
 
-    const onSubmit: SubmitHandler<IFormInputs> = async (
+    const onSubmit: SubmitHandler<LoginFormInputs> = async (
         data,
         event?: React.BaseSyntheticEvent
     ) => {
@@ -55,10 +49,6 @@ const LoginForm = () => {
 
         const token = await recaptcha_ref.current.executeAsync();
         
-        console.log("onSubmit, data is", data);
-        console.log("token is", token);
-        //signIn(); // This goes to default NextAuth UI
-        //let signin_result = await axios.post("/api/auth/signin", data);
         let token_return = await signIn("credentials", { 
             redirect: false,
             username: data.username,
@@ -66,16 +56,12 @@ const LoginForm = () => {
             recaptcha_response: token,
         })
 
-        console.log("Token return is", token_return);
-
         if(token_return == null || token_return?.error) {
             toast.error("Error signing in. Please verify your credentials and try again.");
-            console.log("Error signing in", token_return);
             setIsLoading(false);
         }
         else if (token_return?.ok) {
             toast.success("Successfully signed in!");
-            console.log("Successfully signed in", token_return);
             setIsLoading(false);
         }
     }
@@ -129,8 +115,7 @@ const LoginForm = () => {
                     <ReCAPTCHA
                         ref={recaptcha_ref}
                         size="invisible"
-                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                        onChange={onRecaptchaChange}
+                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY : ""}
                     />
                     
                     <Button type="submit" disabled={isLoading || !isValid}>

@@ -33,6 +33,10 @@ class EventTypeViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         serializer = EventTypeSerializer(queryset, many=True)
         return Response(serializer.data)
 
+    # Override: Each element created with the API will also have the user Id who created it
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 # For events, we allow the entire CRUD, but only for the elements that the user created
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()

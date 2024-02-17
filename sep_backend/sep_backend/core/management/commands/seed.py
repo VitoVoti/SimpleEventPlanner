@@ -5,6 +5,9 @@ from django.contrib.auth import get_user_model
 
 # python manage.py seed
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Command(BaseCommand):
     help = "Adds initial EventType elements to the database, an admin user and a test user"
 
@@ -12,32 +15,10 @@ class Command(BaseCommand):
         parser.add_argument('--mode', type=str, help="Mode")
 
     def handle(self, *args, **options):
-        self.stdout.write('seeding data...')
+        self.stdout.write('Calling seed function...')
         seed(self)
-        self.stdout.write('done.')
+        self.stdout.write('End of seed function.')
 
-
-def clear_data():
-    """Deletes all the table data"""
-    logger.info("Delete Address instances")
-    Address.objects.all().delete()
-
-
-def create_address():
-    """Creates an address object combining different elements from the list"""
-    logger.info("Creating address")
-    street_flats = ["#221 B", "#101 A", "#550I", "#420G", "#A13"]
-    street_localities = ["Bakers Street", "Rajori Gardens", "Park Street", "MG Road", "Indiranagar"]
-    pincodes = ["101234", "101232", "101231", "101236", "101239"]
-
-    address = Address(
-        street_flat=random.choice(street_flats),
-        street_locality=random.choice(street_localities),
-        pincode=random.choice(pincodes),
-    )
-    address.save()
-    logger.info("{} address created.".format(address))
-    return address
 
 def seed(self):
 
@@ -49,10 +30,10 @@ def seed(self):
         self.stdout.write('Events already exist, skipping...')
     else:
         self.stdout.write('Creating event types...')
-        EventType.objects.create(title='Meeting')
-        EventType.objects.create(title='Training')
-        EventType.objects.create(title='Workshop')
-        EventType.objects.create(title='Leisure')
+        EventType.objects.create(title='Meeting', color='##1975d2')
+        EventType.objects.create(title='Training', color='##e25141')
+        EventType.objects.create(title='Workshop', color='#4caf50')
+        EventType.objects.create(title='Leisure', color='#ffeb3b')
         self.stdout.write('Event types created!')
     
     # Check if we have admins

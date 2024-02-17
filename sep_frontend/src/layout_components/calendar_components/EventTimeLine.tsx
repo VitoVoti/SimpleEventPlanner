@@ -1,12 +1,14 @@
 'use client'
-import { Calendar, Views, momentLocalizer } from 'react-big-calendar'
+import { Calendar, EventProps, Views, momentLocalizer } from 'react-big-calendar'
 import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop'
 import moment from 'moment'
 import { Box } from '@mui/material'
 import useMainStore from '@/store/useMainStore'
 import LoadingFullScreen from '../LoadingFullScreen'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import { toast } from 'sonner'
+import { updateEvent } from '@/models/EventAndEventType'
+import { Circle } from '@mui/icons-material'
 
 // Setup the localizer by providing the moment (or globalize, or Luxon) Object
 // to the correct localizer.
@@ -14,7 +16,7 @@ const localizer = momentLocalizer(moment) // or globalizeLocalizer
 
 const DnDCalendar = withDragAndDrop(Calendar)
 
-const EventTimeLine = ({}) => {
+const EventTimeLine = ({ }) => {
 
     // react-big-calendar expects the events to be in a specific format
     // Also something important to consider: events must have a different start and end for them to be correctly draggable
@@ -29,79 +31,79 @@ const EventTimeLine = ({}) => {
 
     const setLastUpdateRequestTime = useMainStore((state) => state.setLastUpdateRequestTime)
 
-    const handleSelectEvent = (event) => {
+    const handleSelectEvent = (event: EventFromBackend) => {
         // We can't pass the object directly, so we look for the one with the same id on the events array
         // This is not efficient (linear search), but it will do for now
         let event_in_original_format = events.find(e => e.id === event.id);
         setSelectedEvent(event_in_original_format);
     }
 
-    const handleEventDrop = (args: EventInteractionArgs<object>) => {
+    const handleEventDrop = async (args: EventInteractionArgs<EventFromBackend>) => {
         const { event, start, end } = args;
-        console.log("Event dropped", { start, end }, event);
 
         let event_in_original_format = events.find(e => e.id === event.id);
-        updateEvent(event.id, start, end);
-        
-    }
-
-    async function updateEvent(event_id, new_start, new_end){
-        const url = process.env.NEXT_PUBLIC_BACKEND_CORE_URL + "events/" + event_id + "/";
-
-        // To update we use patch
-        let save_result = await axios.patch(url, {
-            start_date: moment(new_start).toISOString(),
-            end_date: moment(new_end).toISOString(),
-        }, 
-        {
-            headers: {
-                Authorization: `Bearer ${access_token}`
+        if (!event_in_original_format) {
+            return;
+        }
+        await updateEvent(
+            {
+                title: event_in_original_format.title,
+                start_date: start.toString(),
+                end_date: end.toString(),
+                type: event_in_original_format.type
             },
-        }).catch((error) => {
-            console.log("Error updating event", error);
-            return {error: error}
-        });
-        
-        if(save_result == null || save_result?.error) {
-            toast.error("Error updating this event");
-        }
-        else if (save_result?.status == 200) {
-            toast.success("Event updated successfully");
-            //reset();
-            clearSelectedEvent(); 
-        }
+            event.id,
+            access_token,
+            clearSelectedEvent,
+            toast
+        );
         setLastUpdateRequestTime();
-        //setIsLoading(false);
-        //setUpdateModalOpen(false);
+
     }
+
+    // To customize how the events look
+    const CustomEvent = ({event} : { event : any }) => (
+        <div>
+          <Circle sx={{ color: event.color, fontSize: '0.65em', marginRight: 1 }} />
+          <span>{event.title}</span>
+        </div>
+    );
 
     return (
         <Box
-        
+
         >
             {
-                processed_events_for_timeline_view ? 
-                <div style={{height: '800px'}}>
-                <DnDCalendar
-                    localizer={localizer}
-                    events={processed_events_for_timeline_view}
-                    startAccessor="start"
-                    endAccessor="end"
-                    length={1}
-                    onSelectEvent={handleSelectEvent}
-                    defaultView={Views.WEEK}
-                    views={[Views.WEEK]}
-                    selected={selected_event ? processed_events_for_timeline_view.find(e => e.id == selected_event.id) : null}
+                processed_events_for_timeline_view ?
+                    <div style={{ height: '800px' }}>
+                        <DnDCalendar
+                            localizer={localizer}
+                            events={processed_events_for_timeline_view}
+                            // @ts-ignore // This is a known issue, the types are not updated
+                            startAccessor="start"
+                            // @ts-ignore // This is a known issue, the types are not updated
+                            endAccessor="end"
+                            length={1}
+                            // @ts-ignore // This is a known issue, the types are not updated
+                            onSelectEvent={handleSelectEvent}
+                            defaultView={Views.WEEK}
+                            views={[Views.WEEK]}
+                            // @ts-ignore // This is a known issue, the types are not updated
+                            selected={selected_event ? processed_events_for_timeline_view.find(e => e.id == selected_event.id) : null}
+                            // @ts-ignore // This is a known issue, the types are not updated
+                            onEventDrop={handleEventDrop}
+                            resizable={false}
 
-                    onEventDrop={handleEventDrop}
-                    resizable={false}
-                    
-                />
-                </div>
-                :
-                <LoadingFullScreen />
+                            components={{
+                                event: CustomEvent,
+                            }}
+
+                        />
+                    </div>
+                    :
+                    <LoadingFullScreen />
             }
-            
+
         </Box>
     )
 }

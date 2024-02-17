@@ -14,23 +14,39 @@ https://next-auth.js.org/configuration/providers/credentials
 
 
 // Seconds of time
-const BACKEND_ACCESS_TOKEN_LIFETIME = 60 * 45;  // 45 minutes
-const BACKEND_REFRESH_TOKEN_LIFETIME = 6 * 24 * 60 * 60;  // 6 days
+const BACKEND_ACCESS_TOKEN_LIFETIME = 1 * 60 * 60 ;  // 60 minutes
+const BACKEND_REFRESH_TOKEN_LIFETIME = 7 * 24 * 60 * 60;  // 7 days
 
 const getCurrentEpochTime = () => {
     return Math.floor(new Date().getTime() / 1000);
 };
+
+type SignInHandlers = {
+    [key: string]: (user: any, account: any, profile: any, email: any, credentials: any) => Promise<boolean>;
+};
   
-const SIGN_IN_HANDLERS = {
+const SIGN_IN_HANDLERS : SignInHandlers = {
     "credentials": async (user : any, account : any, profile : any, email : any, credentials : any) => {
         return true;
     },
 };
-const SIGN_IN_PROVIDERS = Object.keys(SIGN_IN_HANDLERS);
+const SIGN_IN_PROVIDERS : any[] = Object.keys(SIGN_IN_HANDLERS);
 
 import axios from "axios";
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+
+type Token = {
+    user: any,
+    access_token: string,
+    refresh_token: string,
+    ref: number,
+}
+
+type Credentials = {
+    username: string,
+    password: string,
+}
 
 const auth_options = {
     secret: process.env.AUTH_SECRET,
@@ -62,7 +78,6 @@ const auth_options = {
                     body: JSON.stringify(credentials),
                     headers: { "Content-Type": "application/json" }
                 })
-                console.log("post login", res)
                 const user = await res.json()
         
                 // If no error and we have user data, return it
@@ -76,13 +91,13 @@ const auth_options = {
     ],
     callbacks: {
         // in this case profile is always undefined
-        async signIn({user, account, profile, email, credentials}) {
+        async signIn({user, account, profile, email, credentials}: { user: any, account: any, profile: any, email: any, credentials: Credentials }) {
             if (!SIGN_IN_PROVIDERS.includes(account.provider)) return false;
             return SIGN_IN_HANDLERS[account.provider](
                 user, account, profile, email, credentials
             );
         },
-        async jwt({user, token, account}) {
+        async jwt({user, token, account} : {user: any, token: Token, account: any}) {
             // If `user` and `account` are set that means it is a login event
             if (user && account) {
                 let backendResponse = account.provider === "credentials" ? user : account.meta;
@@ -109,12 +124,12 @@ const auth_options = {
         },
         // Since we're using Django as the backend we have to pass the JWT
         // token to the client instead of the `session`.
-        async session({token}) {
+        async session({token} : {token : Token}) {
             return token;
         },
     },
 }
-
+// @ts-ignore
 const handler = NextAuth(auth_options)
 
 export { handler as GET, handler as POST }

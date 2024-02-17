@@ -79,8 +79,6 @@ const auth_options = {
                     headers: { "Content-Type": "application/json" }
                 })
                 const user = await res.json()
-                console.log("authorize, fetch is " + JSON.stringify(res))
-                console.log("authorize, return is " + JSON.stringify(user))
         
                 // If no error and we have user data, return it
                 if (res.ok && user) {

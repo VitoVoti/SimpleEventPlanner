@@ -61,13 +61,13 @@ const useMainStore = create<MainStoreState>()(
                 // For example, an even that starts January 1st and ends in January 10th will be shown if we select January 5th as start_date_rage
                 let ids_to_keep : number[] = [];
                 let types_on_filters_ids: number[] = []
+
                 if(filters.types){
-                    filters.types.filter(e => e).map((type : EventTypeFromBackend) => type.id);
+                    types_on_filters_ids = filters.types.filter(e => e).map((type : EventTypeFromBackend) => type.id);
                 }
 
                 for (let event of filtered_list) {
                     let keep = true;
-
 
                     if (filters.types && filters.types.length > 0 && event.type && types_on_filters_ids.includes(event.type) == false) {
                         keep = false;

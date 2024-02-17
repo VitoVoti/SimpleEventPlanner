@@ -23,12 +23,12 @@ export default function About() {
         {
             icon: <CalendarMonth/>,
             title: "Weekly calendar view",
-            description: "Hate having to click through different views such as daily, weekly, monthly, etc.? Well, we have made the choice for you, there&apos;s only a weekly Timeline view!"
+            description: "Hate having to click through different views such as daily, weekly, monthly, etc.? Well, we have made the choice for you, there\'s only a weekly Timeline view!"
         },
         {
             icon: <AccountCircle/>,
-            title: "So private, there&apos;s no registrations allowed",
-            description: "This app is SO exclusive, we don&apos;t allow new sign-ups! Ever! That&apos;s how you know we don&apos;t harvest your data, or have a business model, or any plan for the future at all!"
+            title: "So private, there\'s no registrations allowed",
+            description: "This app is SO exclusive, we don\'t allow new sign-ups! Ever! That\'s how you know we don\'t harvest your data, or have a business model, or any plan for the future at all!"
         },
         {
             icon: <PhoneMissed/>,
@@ -38,7 +38,7 @@ export default function About() {
         {
             icon: <Code/>,
             title: "Open source",
-            description: "You can trust me, because the code is open source! You can go and see it right now!... just don&apos;t look at the times I had to use &apos;any&apos; for types, I swear to god Typescript can be so annoying sometimes..."
+            description: "You can trust me, because the code is open source! You can go and see it right now!... just don\'t look at the times I had to use \'any\' for types, I swear to god Typescript can be so annoying sometimes..."
         },
     ]
 
@@ -86,7 +86,7 @@ export default function About() {
                         </List>
                     </Grid>
                     <Typography variant="h6" component={"p"} sx={{textAlign: "center"}}>
-                        If you aren&apos;t convinced yet, well, all I can say is that I put lots of effort for 5 days to make this happen.  So, the fact that you&apos;re reading this makes me happy. Software is to be used, it&apos;s the legacy we programmers leave to the world. Even if you don&apos;t use it again, at least my work reached someone!
+                        If you aren&apos;t convinced yet, well, all I can say is that I&apos;ve put lots of effort for the past 5 days (in my free time) to make this happen.  But, the fact that you&apos;re reading this makes me happy that my work is reaching someone out there. Software is to be used, it&apos;s the legacy us programmers leave to the world. Even if you don&apos;t use this web app again!
                     </Typography>
                     <Typography variant="h6" component={"p"} sx={{textAlign: "center"}}>
                         Thank you for coming to my TED talk... I mean, thank you for using Simple Event Planner.

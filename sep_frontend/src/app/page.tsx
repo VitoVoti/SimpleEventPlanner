@@ -27,12 +27,12 @@ export default function Home() {
 			setHasUpdatedSession(true);
 		}
 		
-	}, [session]);
+	}, [session, hasUpdatedSession, update]);
 
-	// Special case: in development, sometimes we're logged in, the status is authenticated, but the user is not initialized yet. 
+	// Special case: in development, sometimes we're logged in and the status is authenticated, but the user is not initialized yet. 
 	// We keep the loading screen in the meantime, otherwise the UI will show the login form for a second.
 
-	if((status === "loading") || (status === "authenticated" && session?.user == null)) {
+	if((status === "loading") && !hasUpdatedSession) {
 		return (
             <Container
                 sx={{
@@ -44,13 +44,13 @@ export default function Home() {
             >
                 <LoadingFullScreen />
             </Container>
+			
         )
 	}
 
 	
 
 	return (
-		
 		<React.StrictMode>
 			<Container maxWidth="xl">
 				<Grid container spacing={2} justifyContent="center">

@@ -24,19 +24,13 @@ export default function Planner() {
     // We use the global store to keep the user token, events and event types
     const user_token = useMainStore((state) => state.user_token)
     const setUserToken = useMainStore((state) => state.setUserToken)
-    
     const setEventsAndTypesOfEvents = useMainStore((state) => state.setEventsAndTypesOfEvents)
-
     const filters = useMainStore((state) => state.filters)
     const filterEvents = useMainStore((state) => state.filterEvents)
-
     const last_update_request_time = useMainStore((state) => state.last_update_request_time)
     const setLastUpdateRequestTime = useMainStore((state) => state.setLastUpdateRequestTime)
 
-
-    // Toggles showing the rest of the components or not
-    const [sessionDataReady, setSessionDataReady] = useState(false);
-
+    // NextAuth
     const {data: session, status, update} = useSession({
         required: true,
         onUnauthenticated() {
@@ -45,14 +39,16 @@ export default function Planner() {
     });
     const router = useRouter();
 
-	const [hasUpdatedSession, setHasUpdatedSession] = useState(false);
-
 	// We call /session/ once the variable is ready, in case we need to trigger a token refresh
-	useEffect(() => {
 
-        // Trigger refresh the first time, and if the token in the store is different
+    const [hasUpdatedSession, setHasUpdatedSession] = useState(false);
+    const [eventDataReady, setEventDataReady] = useState(false);
+
+	useEffect(() => {
+        // Trigger refresh the first time we enter (as useSession initializes), 
+        // and if the token in the store is different
         // @ts-ignore // The types don't have the access_token property, but it's there
-        if(!hasUpdatedSession || (session?.access_token != user_token)){
+        if(!hasUpdatedSession || !session?.user){
             update();
             setHasUpdatedSession(true);
         }
@@ -62,13 +58,13 @@ export default function Planner() {
         // We save them in the global store (Zustand) so we dont have to "drill-down" through all child components
         // updateAllData() also triggers filterEvents(), which creates the processed_events_for_list_view and processed_events_for_timeline_view
         // @ts-ignore // The types don't have the access_token property, but it's there
-        if(hasUpdatedSession && session?.access_token) {
+        if(hasUpdatedSession && session?.user) {
             setLastUpdateRequestTime();  
         }
         
 
 		
-	}, [session]);
+	}, [session, hasUpdatedSession])
     
 
     // Every time last_update_request_time changes, we update the Event data
@@ -92,10 +88,8 @@ export default function Planner() {
                 setEventsAndTypesOfEvents(values[0], values[1]);
                 // @ts-ignore // The types don't have the access_token property, but it's there
                 setUserToken(session.access_token);
-                setSessionDataReady(true);
+                setEventDataReady(true);
             })
-        } else {
-
         }
     }
 
@@ -104,15 +98,11 @@ export default function Planner() {
     useEffect(() => {
         filterEvents();
     }, [filters])
-
-
-    // Axios method, and other methods to fetch the data
-    
     
 
-    // Special case: in development, sometimes we're logged in and the status is authenticated, but the user is not initialized yet. 
-	// We keep the loading screen in the meantime, otherwise the UI will show as if we're logged in for a second.
-	if(sessionDataReady == false || (status === "loading") || (status === "authenticated" && session?.user == null)) {
+    // Show a loading screen while we wait for the session to be ready
+    // @ts-ignore // The types don't have the unauthenticated option, but it's there
+    if((session?.user && session?.access_token) == false) {
         return (
             <Container
                 sx={{
@@ -127,15 +117,11 @@ export default function Planner() {
         )
     }
     // @ts-ignore // The types don't have the unauthenticated option, but it's there
-    else if(session == null || status === "unauthenticated"){
+    if(session == null || status === "unauthenticated" || session?.access_token == null){
         toast.error("You are not logged in, please log in to continue");
         router.push("/");
     } 
 
-
-    
-
-    
 
     return (
         <>

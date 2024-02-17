@@ -288,25 +288,6 @@ const CalendarModalsAndForms = () => {
                             </>
                         }
                     />
-                    {/* 
-                    <Select
-                        label="Type"
-                        sx={{width: "100%"}}
-                        {...register("type")}
-                        value={getValues("type")}
-                    >
-                        {event_types.map(eventType => 
-                            <MenuItem 
-                                key={eventType.id} 
-                                value={eventType.id}
-                            >
-                                {eventType.title}
-                            </MenuItem>
-                        )}
-                                
-                    </Select>
-                    <FormErrorMessage errors={errors} name="type"/>
-                    */}
                     
                     
                     <Controller
